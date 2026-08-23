@@ -1,0 +1,6 @@
+node_modules/
+.playwright/
+.DS_Store
+.env
+# Real player/contact/game data should not be committed to a public repo.
+data/db.json
