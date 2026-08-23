@@ -1,0 +1,16 @@
+{
+  "name": "camarillo-darts",
+  "version": "0.7.1",
+  "private": true,
+  "description": "Camarillo Darts competition platform: players, BullShooter sync, handicaps, leagues, tournaments, ratings, feats and Google Sheets mirror",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node --check server.js && node --check public/app.js && node --check src/store.js && node --check src/bullshooter.js && node --check src/sheets.js && node tests/handicap.test.js && node tests/platform.test.js"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
+  },
+  "engines": { "node": ">=20" }
+}
