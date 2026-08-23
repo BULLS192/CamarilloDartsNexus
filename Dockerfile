@@ -2,7 +2,7 @@ FROM node:20-bookworm-slim
 
 WORKDIR /app
 
-# Reconstruct the exact deployment source bundle committed under /bundle.
+# Reconstruct the deployment source bundle committed under /bundle.
 # The player/contact database is intentionally excluded from this bundle.
 COPY bundle/ /tmp/camarillo-bundle/
 RUN cat \
@@ -14,6 +14,10 @@ RUN cat \
   | base64 -d > /tmp/camarillo-source.tar.gz \
   && tar -xzf /tmp/camarillo-source.tar.gz -C /app \
   && rm -rf /tmp/camarillo-bundle /tmp/camarillo-source.tar.gz
+
+# Overlay the current BullShooter connector from the repository so parser fixes
+# can be deployed without rebuilding the archived application bundle.
+COPY src/bullshooter.js /app/src/bullshooter.js
 
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
