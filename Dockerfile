@@ -52,6 +52,13 @@ COPY public/v0711.css /app/public/v0711.css
 COPY deploy/patch-v0711.mjs /tmp/patch-v0711.mjs
 RUN node /tmp/patch-v0711.mjs && rm /tmp/patch-v0711.mjs
 
+# V0.8.0: league, team, scheduling, standings, registration, playoffs and director controls.
+COPY src/league.js /app/src/league.js
+COPY public/v080.js /app/public/v080.js
+COPY public/v080.css /app/public/v080.css
+COPY deploy/patch-v080.mjs /tmp/patch-v080.mjs
+RUN node /tmp/patch-v080.mjs && rm /tmp/patch-v080.mjs
+
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
 
