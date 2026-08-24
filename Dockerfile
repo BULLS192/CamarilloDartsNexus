@@ -15,12 +15,16 @@ RUN cat \
   && tar -xzf /tmp/camarillo-source.tar.gz -C /app \
   && rm -rf /tmp/camarillo-bundle /tmp/camarillo-source.tar.gz
 
-# Apply the current persistence/UI patch after reconstructing the archived source.
+# Apply persistence/backend verification from V0.7.4.
 COPY deploy/patch-v073.mjs /tmp/patch-v073.mjs
 RUN node /tmp/patch-v073.mjs && rm /tmp/patch-v073.mjs
 
-# Overlay actively maintained files from the repository.
+# Overlay actively maintained BullShooter parser and V0.7.5 UI assets.
 COPY src/bullshooter.js /app/src/bullshooter.js
+COPY public/v075.js /app/public/v075.js
+COPY public/v075.css /app/public/v075.css
+COPY deploy/patch-v075.mjs /tmp/patch-v075.mjs
+RUN node /tmp/patch-v075.mjs && rm /tmp/patch-v075.mjs
 
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
