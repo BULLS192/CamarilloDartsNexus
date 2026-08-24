@@ -57,7 +57,11 @@ COPY src/tournament.js /app/src/tournament.js
 COPY public/v080t.js /app/public/v080t.js
 COPY public/v080t.css /app/public/v080t.css
 COPY deploy/patch-v080t.mjs /tmp/patch-v080t.mjs
-RUN node /tmp/patch-v080t.mjs && rm /tmp/patch-v080t.mjs
+RUN node --check /app/src/tournament.js \
+  && node --check /app/public/v080t.js \
+  && node --check /tmp/patch-v080t.mjs \
+  && node /tmp/patch-v080t.mjs \
+  && rm /tmp/patch-v080t.mjs
 
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
