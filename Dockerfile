@@ -15,9 +15,10 @@ RUN cat \
   && tar -xzf /tmp/camarillo-source.tar.gz -C /app \
   && rm -rf /tmp/camarillo-bundle /tmp/camarillo-source.tar.gz
 
-# Overlay the current BullShooter connector from the repository so parser fixes
-# can be deployed without rebuilding the archived application bundle.
+# Overlay actively maintained files from the repository.
 COPY src/bullshooter.js /app/src/bullshooter.js
+COPY public/ui-fixes.css /tmp/ui-fixes.css
+RUN cat /tmp/ui-fixes.css >> /app/public/styles.css && rm /tmp/ui-fixes.css
 
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
