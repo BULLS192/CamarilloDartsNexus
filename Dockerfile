@@ -52,6 +52,13 @@ COPY public/v0711.css /app/public/v0711.css
 COPY deploy/patch-v0711.mjs /tmp/patch-v0711.mjs
 RUN node /tmp/patch-v0711.mjs && rm /tmp/patch-v0711.mjs
 
+# V0.8.0 trial: tournament check-in, blind draw/singles bracket, boards, results and advancement.
+COPY src/tournament.js /app/src/tournament.js
+COPY public/v080t.js /app/public/v080t.js
+COPY public/v080t.css /app/public/v080t.css
+COPY deploy/patch-v080t.mjs /tmp/patch-v080t.mjs
+RUN node /tmp/patch-v080t.mjs && rm /tmp/patch-v080t.mjs
+
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
 
