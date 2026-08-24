@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
+const dir=await fs.mkdtemp(path.join(os.tmpdir(),'camarillo-tournament-'));
+process.env.TOURNAMENT_DB_PATH=path.join(dir,'tournaments.json');
+const T=await import('../src/tournament.js');
+const event=await T.createEvent({name:'Smoke Test',format:'singles',boards:'1,2'});
+for(const p of ['p1','p2','p3','p4'])await T.checkIn(event.id,p);
+let d=await T.generateBracket(event.id);
+assert.equal(d.teams.length,4);
+assert.equal(d.matches.filter(x=>x.round===1).length,2);
+assert.equal(d.matches.filter(x=>x.status==='playing').length,2);
+for(const m of d.matches.filter(x=>x.round===1))d=await T.reportResult(m.id,{scoreA:2,scoreB:0});
+const final=d.matches.find(x=>x.round===2);
+assert.ok(final);
+assert.equal(final.status,'playing');
+d=await T.reportResult(final.id,{scoreA:2,scoreB:1});
+assert.equal(d.event.status,'complete');
+assert.equal(d.placements[0].place,1);
+assert.equal(d.placements[0].points,10);
+console.log('Tournament trial smoke test PASS');
