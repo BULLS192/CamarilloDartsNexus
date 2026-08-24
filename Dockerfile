@@ -38,9 +38,13 @@ RUN node /tmp/patch-v077.mjs && rm /tmp/patch-v077.mjs
 COPY deploy/patch-v078.mjs /tmp/patch-v078.mjs
 RUN node /tmp/patch-v078.mjs && rm /tmp/patch-v078.mjs
 
-# V0.7.9: capture BullShooter XHR/fetch JSON and derive Last 50 / 20 / 10 from the underlying data source.
+# V0.7.9: capture BullShooter XHR/fetch JSON and discover the underlying endpoints.
 COPY deploy/patch-v079.mjs /tmp/patch-v079.mjs
 RUN node /tmp/patch-v079.mjs && rm /tmp/patch-v079.mjs
+
+# V0.7.10: call BullShooter's fetch_games API directly and derive Last 50 / 20 / 10.
+COPY deploy/patch-v0710.mjs /tmp/patch-v0710.mjs
+RUN node /tmp/patch-v0710.mjs && rm /tmp/patch-v0710.mjs
 
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
