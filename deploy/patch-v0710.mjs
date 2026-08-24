@@ -67,10 +67,10 @@ function valueAtPath(obj, path) {
 
 async function fetchBullshooterGames(playerId, discipline, perPage = 50) {
   const gameType = discipline === 'cricket' ? 'cricket' : 'x01';
-  const url = `https://www.bullshooter.live/search/fetch_games.php?player_id=${encodeURIComponent(playerId)}&game_type=${gameType}&page=1&per_page=${perPage}`;
+  const url = 'https://www.bullshooter.live/search/fetch_games.php?player_id=' + encodeURIComponent(playerId) + '&game_type=' + gameType + '&page=1&per_page=' + perPage;
   const res = await fetch(url, { headers: { accept:'application/json,text/plain,*/*', 'user-agent':'Mozilla/5.0 CamarilloDarts/0.7.10' }, signal: AbortSignal.timeout(15000) });
   const payload = await res.json().catch(()=>null);
-  if (!res.ok || !payload?.success || !Array.isArray(payload.games)) throw new Error(`BullShooter ${gameType} games API failed (${res.status})`);
+  if (!res.ok || !payload?.success || !Array.isArray(payload.games)) throw new Error('BullShooter ' + gameType + ' games API failed (' + res.status + ')');
   return { url, games: payload.games, hasNext: Boolean(payload.has_next), page: payload.page, perPage: payload.per_page };
 }
 
@@ -109,7 +109,6 @@ s = s.replace(anchor, helpers);
 const blockStart = s.indexOf('    const { profile } = await waitForCoreStats(page, id);');
 const blockEnd = s.indexOf('    profile.recentCricketCount = cricketGames.length;', blockStart);
 if (blockStart < 0 || blockEnd < 0) throw new Error('V0.7.10 patch: importer recent block not found');
-const oldBlock = s.slice(blockStart, blockEnd);
 const newBlock = `    const { profile } = await waitForCoreStats(page, id);\n    const directRecent = await directRecentPerformance(id).catch(error => ({last10PPD:null,last20PPD:null,last50PPD:null,last10MPR:null,last20MPR:null,last50MPR:null,diagnostics:{error:error.message}}));\n    await loadProfilePage(page, url);\n    const cricketGames = await collectRecent(page, 'cricket', 30).catch(() => []);\n    await loadProfilePage(page, url);\n    const games01 = await collectRecent(page, '01', 30).catch(() => []);\n    profile.recentCricketGames = cricketGames;\n    profile.recent01Games = games01;\n    profile.last50MPR = directRecent.last50MPR;\n    profile.last50PPD = directRecent.last50PPD;\n    profile.last20MPR = directRecent.last20MPR;\n    profile.last20PPD = directRecent.last20PPD;\n    profile.last10MPR = directRecent.last10MPR;\n    profile.last10PPD = directRecent.last10PPD;\n    profile.last50SampleSize = directRecent.last50MPR != null || directRecent.last50PPD != null ? 50 : null;\n    profile.last20SampleSize = directRecent.last20MPR != null || directRecent.last20PPD != null ? 20 : null;\n    profile.last10SampleSize = directRecent.last10MPR != null || directRecent.last10PPD != null ? 10 : null;\n    profile.last30MPR = null; profile.last30PPD = null; profile.last30SampleSize = null;\n    profile.recentPerformanceSource = 'bullshooter-fetch-games-api';\n    profile.directGameApiDiagnostics = directRecent.diagnostics;\n`;
 s = s.slice(0, blockStart) + newBlock + s.slice(blockEnd);
 
