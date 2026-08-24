@@ -46,6 +46,12 @@ RUN node /tmp/patch-v079.mjs && rm /tmp/patch-v079.mjs
 COPY deploy/patch-v0710.mjs /tmp/patch-v0710.mjs
 RUN node /tmp/patch-v0710.mjs && rm /tmp/patch-v0710.mjs
 
+# V0.7.11: display separate BullShooter and Camarillo rating scores.
+COPY public/v0711.js /app/public/v0711.js
+COPY public/v0711.css /app/public/v0711.css
+COPY deploy/patch-v0711.mjs /tmp/patch-v0711.mjs
+RUN node /tmp/patch-v0711.mjs && rm /tmp/patch-v0711.mjs
+
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
 
