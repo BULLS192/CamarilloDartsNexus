@@ -19,12 +19,16 @@ RUN cat \
 COPY deploy/patch-v073.mjs /tmp/patch-v073.mjs
 RUN node /tmp/patch-v073.mjs && rm /tmp/patch-v073.mjs
 
-# Overlay actively maintained BullShooter parser and V0.7.5 UI assets.
+# Overlay actively maintained BullShooter parser and V0.7.5 bulk-sync UI assets.
 COPY src/bullshooter.js /app/src/bullshooter.js
 COPY public/v075.js /app/public/v075.js
 COPY public/v075.css /app/public/v075.css
 COPY deploy/patch-v075.mjs /tmp/patch-v075.mjs
 RUN node /tmp/patch-v075.mjs && rm /tmp/patch-v075.mjs
+
+# V0.7.6: use BullShooter's Recent Performance sample selector for BS10/BS30.
+COPY deploy/patch-v076.mjs /tmp/patch-v076.mjs
+RUN node /tmp/patch-v076.mjs && rm /tmp/patch-v076.mjs
 
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
