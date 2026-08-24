@@ -34,9 +34,13 @@ COPY public/v077.js /app/public/v077.js
 COPY deploy/patch-v077.mjs /tmp/patch-v077.mjs
 RUN node /tmp/patch-v077.mjs && rm /tmp/patch-v077.mjs
 
-# V0.7.8: structurally inspect Recent Performance DOM values and reject bogus label numbers.
+# V0.7.8: reject bogus DOM values and retain structural diagnostics.
 COPY deploy/patch-v078.mjs /tmp/patch-v078.mjs
 RUN node /tmp/patch-v078.mjs && rm /tmp/patch-v078.mjs
+
+# V0.7.9: capture BullShooter XHR/fetch JSON and derive Last 50 / 20 / 10 from the underlying data source.
+COPY deploy/patch-v079.mjs /tmp/patch-v079.mjs
+RUN node /tmp/patch-v079.mjs && rm /tmp/patch-v079.mjs
 
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
