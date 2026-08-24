@@ -52,6 +52,10 @@ COPY public/v0711.css /app/public/v0711.css
 COPY deploy/patch-v0711.mjs /tmp/patch-v0711.mjs
 RUN node /tmp/patch-v0711.mjs && rm /tmp/patch-v0711.mjs
 
+# V0.7.12: use structured BullShooter current stats and support one-discipline players safely.
+COPY deploy/patch-v0712.mjs /tmp/patch-v0712.mjs
+RUN node /tmp/patch-v0712.mjs && rm /tmp/patch-v0712.mjs
+
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
 
