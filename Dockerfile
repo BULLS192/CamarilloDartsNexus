@@ -29,10 +29,14 @@ RUN node /tmp/patch-v075.mjs && rm /tmp/patch-v075.mjs
 COPY deploy/patch-v076.mjs /tmp/patch-v076.mjs
 RUN node /tmp/patch-v076.mjs && rm /tmp/patch-v076.mjs
 
-# V0.7.7: align with BullShooter Last 50 / 20 / 10 and use hardened metric parsing.
+# V0.7.7: align with BullShooter Last 50 / 20 / 10.
 COPY public/v077.js /app/public/v077.js
 COPY deploy/patch-v077.mjs /tmp/patch-v077.mjs
 RUN node /tmp/patch-v077.mjs && rm /tmp/patch-v077.mjs
+
+# V0.7.8: structurally inspect Recent Performance DOM values and reject bogus label numbers.
+COPY deploy/patch-v078.mjs /tmp/patch-v078.mjs
+RUN node /tmp/patch-v078.mjs && rm /tmp/patch-v078.mjs
 
 RUN npm install --omit=dev && npx playwright install --with-deps chromium
 RUN npm run check
