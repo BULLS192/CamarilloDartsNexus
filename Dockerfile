@@ -61,6 +61,12 @@ COPY tests/toc-v091.test.js /app/tests/toc-v091.test.js
 COPY deploy/patch-v091.mjs /tmp/patch-v091.mjs
 RUN node /tmp/patch-v091.mjs && rm /tmp/patch-v091.mjs
 
+# EDC robustness layer: public EVP stats, source fallback and cross-source diagnostics.
+COPY src/edc.js /app/src/edc.js
+COPY tests/edc.test.js /app/tests/edc.test.js
+COPY deploy/patch-v090-edc.mjs /tmp/patch-v090-edc.mjs
+RUN node /tmp/patch-v090-edc.mjs && rm /tmp/patch-v090-edc.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
