@@ -85,6 +85,8 @@ COPY public/v094-player-intel.css /app/public/v094-player-intel.css
 COPY tests/player-intel-v094.test.js /app/tests/player-intel-v094.test.js
 COPY deploy/patch-v094-player-intel.mjs /tmp/patch-v094-player-intel.mjs
 RUN node /tmp/patch-v094-player-intel.mjs && rm /tmp/patch-v094-player-intel.mjs
+COPY deploy/patch-v094-confirmed-edc-refresh.mjs /tmp/patch-v094-confirmed-edc-refresh.mjs
+RUN node /tmp/patch-v094-confirmed-edc-refresh.mjs && rm /tmp/patch-v094-confirmed-edc-refresh.mjs
 
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
