@@ -67,6 +67,13 @@ COPY tests/edc.test.js /app/tests/edc.test.js
 COPY deploy/patch-v090-edc.mjs /tmp/patch-v090-edc.mjs
 RUN node /tmp/patch-v090-edc.mjs && rm /tmp/patch-v090-edc.mjs
 
+# V0.9.2: visible BullShooter / PPD-TOC / EDC / Nexus source-stat comparison layer.
+COPY public/v092-stats.js /app/public/v092-stats.js
+COPY public/v092-stats.css /app/public/v092-stats.css
+COPY tests/stats-sources-ui.test.js /app/tests/stats-sources-ui.test.js
+COPY deploy/patch-v092-stats.mjs /tmp/patch-v092-stats.mjs
+RUN node /tmp/patch-v092-stats.mjs && rm /tmp/patch-v092-stats.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
