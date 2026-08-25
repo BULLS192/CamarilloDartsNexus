@@ -56,6 +56,11 @@ COPY tests/toc-v090.test.js /app/tests/toc-v090.test.js
 COPY deploy/patch-v090.mjs /tmp/patch-v090.mjs
 RUN node /tmp/patch-v090.mjs && rm /tmp/patch-v090.mjs
 
+# V0.9.1: decode HTML-encoded ASP.NET pager postbacks so full TOC pagination is crawled.
+COPY tests/toc-v091.test.js /app/tests/toc-v091.test.js
+COPY deploy/patch-v091.mjs /tmp/patch-v091.mjs
+RUN node /tmp/patch-v091.mjs && rm /tmp/patch-v091.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
