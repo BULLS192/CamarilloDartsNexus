@@ -79,6 +79,13 @@ COPY tests/toc-v093.test.js /app/tests/toc-v093.test.js
 COPY deploy/patch-v093-toc-reliability.mjs /tmp/patch-v093-toc-reliability.mjs
 RUN node /tmp/patch-v093-toc-reliability.mjs && rm /tmp/patch-v093-toc-reliability.mjs
 
+# V0.9.4: manual source linking, raw EDC/TOC directories, robustness and privacy-safe player views.
+COPY public/v094-player-intel.js /app/public/v094-player-intel.js
+COPY public/v094-player-intel.css /app/public/v094-player-intel.css
+COPY tests/player-intel-v094.test.js /app/tests/player-intel-v094.test.js
+COPY deploy/patch-v094-player-intel.mjs /tmp/patch-v094-player-intel.mjs
+RUN node /tmp/patch-v094-player-intel.mjs && rm /tmp/patch-v094-player-intel.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
