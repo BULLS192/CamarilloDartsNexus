@@ -1,0 +1,19 @@
+-- Camarillo Darts Nexus V0.8
+-- Supabase rejects DELETE statements without an explicit WHERE clause.
+-- The live camarillo_sync_normalized_state() trigger was updated so each
+-- mirror-table clear is explicitly scoped by its non-null primary key.
+--
+-- Applied to production on 2026-08-25 as migration:
+-- fix_v080_normalized_state_delete_filters
+--
+-- Required replacements inside public.camarillo_sync_normalized_state():
+--   delete from public.camarillo_players where player_id is not null;
+--   delete from public.camarillo_bullshooter_snapshots where snapshot_id is not null;
+--   delete from public.camarillo_rating_history where rating_id is not null;
+--   delete from public.camarillo_competitions where competition_id is not null;
+--   delete from public.camarillo_matches where match_id is not null;
+--   delete from public.camarillo_games where game_id is not null;
+--   delete from public.camarillo_feats where feat_id is not null;
+--   delete from public.camarillo_sync_runs where sync_id is not null;
+--
+-- The production function definition is managed in Supabase migration history.
