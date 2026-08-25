@@ -44,7 +44,7 @@ COPY src/bullshooter-v080.js /app/src/bullshooter.js
 COPY public/v080.js /app/public/v080.js
 COPY public/v080.css /app/public/v080.css
 COPY public/camarillo-logo.png /app/public/camarillo-logo.png
-COPY public/camarillo-logo-full.webp /app/public/camarillo-logo-full.webp
+COPY public/camarillo-logo-full.png /app/public/camarillo-logo-full.png
 COPY deploy/patch-v080.mjs /tmp/patch-v080.mjs
 RUN node /tmp/patch-v080.mjs && rm /tmp/patch-v080.mjs
 
