@@ -88,6 +88,11 @@ RUN node /tmp/patch-v094-player-intel.mjs && rm /tmp/patch-v094-player-intel.mjs
 COPY deploy/patch-v094-confirmed-edc-refresh.mjs /tmp/patch-v094-confirmed-edc-refresh.mjs
 RUN node /tmp/patch-v094-confirmed-edc-refresh.mjs && rm /tmp/patch-v094-confirmed-edc-refresh.mjs
 
+# V0.9.5: responsiveness-first background sync; TOC yields to active Nexus users.
+COPY tests/performance-v095.test.js /app/tests/performance-v095.test.js
+COPY deploy/patch-v095-performance.mjs /tmp/patch-v095-performance.mjs
+RUN node /tmp/patch-v095-performance.mjs && rm /tmp/patch-v095-performance.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check

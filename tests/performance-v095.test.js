@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root=fs.existsSync('/app/server.js')?'/app':process.cwd();
+const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
+const server=read('server.js'),toc=read('src/dartstoc.js'),pkg=JSON.parse(read('package.json'));
+assert.equal(pkg.version,'0.9.5');
+assert.match(server,/TOC_IDLE_BEFORE_SYNC_MS=.*5\*60_000/,'TOC auto-sync must wait for idle time');
+assert.match(server,/TOC_BACKGROUND_SYNC_MS=.*24\*60\*60_000/,'TOC background freshness must default to 24 hours');
+assert.match(server,/deferReason='Nexus is in active use'/,'TOC background sync must defer while Nexus is active');
+assert.match(server,/last\?\.status==='success'/,'TOC background sync must skip when cache is fresh');
+assert.match(server,/TOC_USER_ACTIVE_UNTIL/,'interactive API activity must signal the crawler to yield');
+assert.match(server,/setInterval\(\(\)=>void refreshTocBackground\(\),TOC_BACKGROUND_CHECK_MS\)/,'TOC background scheduler must check periodically instead of starting immediately');
+assert.match(toc,/while\(true\)\{const activeUntil=Number\(process\.env\.TOC_USER_ACTIVE_UNTIL\)/,'running TOC crawl must yield to active Nexus users');
+assert.match(toc,/p\.page===1\|\|p\.page%100===0/,'TOC checkpoint writes must be reduced to every 100 pages');
+assert.match(toc,/const VERSION='0\.9\.5'/);
+console.log('V0.9.5 performance/idle-gated background sync checks passed');

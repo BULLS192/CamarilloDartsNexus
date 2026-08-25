@@ -6,9 +6,9 @@ const server=read('server.js'),ratings=read('src/ratings.js'),ui=read('public/v0
 assert.match(server,/\/api\/toc\/links/,'TOC link index route must exist');
 assert.match(server,/\/api\/source-sync\/status/,'background source-sync status route must exist');
 assert.match(server,/EDC_BACKGROUND_SYNC_MS=.*10\*60_000/,'EDC background refresh must default to 10 minutes');
-assert.match(server,/TOC_BACKGROUND_SYNC_MS=.*6\*60\*60_000/,'TOC background refresh must default to 6 hours');
+assert.match(server,/const TOC_BACKGROUND_SYNC_MS=/,'TOC background freshness interval must remain configured');
 assert.match(server,/setInterval\(\(\)=>void refreshEdcBackground\(\),EDC_BACKGROUND_SYNC_MS\)/,'EDC background interval must be registered');
-assert.match(server,/setInterval\(\(\)=>void refreshTocBackground\(\),TOC_BACKGROUND_SYNC_MS\)/,'TOC background interval must be registered');
+assert.match(server,/setInterval\(\(\)=>void refreshTocBackground\(\),TOC_BACKGROUND_(?:SYNC|CHECK)_MS\)/,'TOC background scheduler must remain registered');
 assert.match(server,/startBackgroundSourceSync\(\)/,'background source sync must start with the server');
 assert.match(server,/refreshConfirmedEdcLinks\(dataset\)/,'background EDC refresh must refresh confirmed player links');
 assert.match(server,/p\?\.edc\?\.confirmed!==true\)continue/,'background EDC refresh must skip unconfirmed players');
@@ -23,5 +23,5 @@ assert.doesNotMatch(syncBlock,/findEdcPlayer\(/,'generic player sync must not pe
 assert.match(syncBlock,/manualOnly:true/,'generic player sync must explicitly report external manual-only sources');
 assert.match(ratings,/e\.confirmed===true\?asNumber\(e\.ppd\):null/,'unconfirmed EDC may not influence rating fallback');
 assert.match(ui,/Player Source Linking/);assert.match(ui,/Public View/);assert.match(ui,/Robustness/);assert.match(ui,/EDC \/ EVP/);assert.match(ui,/RAW/);
-assert.match(html,/v094-player-intel\.js/);assert.match(html,/v094-player-intel\.css/);assert.equal(pkg.version,'0.9.4');
-console.log('V0.9.4 player source-linking/privacy/robustness/background-sync checks passed');
+assert.match(html,/v094-player-intel\.js/);assert.match(html,/v094-player-intel\.css/);assert.match(String(pkg.version),/^0\.9\.(?:[4-9]|\d{2,})$/,'V0.9.4+ player-intelligence contract must remain active');
+console.log('V0.9.4+ player source-linking/privacy/robustness/background-sync checks passed');
