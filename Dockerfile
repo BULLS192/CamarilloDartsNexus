@@ -100,6 +100,11 @@ RUN node /tmp/patch-v096-ui-performance.mjs && rm /tmp/patch-v096-ui-performance
 COPY deploy/patch-v096-stats-performance.mjs /tmp/patch-v096-stats-performance.mjs
 RUN node /tmp/patch-v096-stats-performance.mjs && rm /tmp/patch-v096-stats-performance.mjs
 
+# V0.9.7: indexed/lightweight PPD-TOC lookups; avoid wildcard MPID scans and raw-data reads.
+COPY tests/toc-query-v097.test.js /app/tests/toc-query-v097.test.js
+COPY deploy/patch-v097-toc-query-performance.mjs /tmp/patch-v097-toc-query-performance.mjs
+RUN node /tmp/patch-v097-toc-query-performance.mjs && rm /tmp/patch-v097-toc-query-performance.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
