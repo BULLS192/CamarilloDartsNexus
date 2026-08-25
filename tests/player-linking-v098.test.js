@@ -15,8 +15,10 @@ assert.match(stats,/select\.addEventListener\('change'/,'Stats Sources must stil
 
 assert.match(ui,/void searchEdc\('link'\)/,'selecting a Nexus player should automatically surface EDC candidates');
 assert.doesNotMatch(ui,/void loadSelectedTocIntel\(p\);scheduleEnhance\(\)/,'Player Intelligence must not duplicate the selected-player TOC request');
-assert.match(ui,/const actionCell=row\.cells\[row\.cells\.length-1\]/,'new robustness cells must be inserted before the existing Actions cell');
-assert.match(ui,/cell\.nextElementSibling!==actionCell/,'existing swapped robustness/action cells must be repaired');
+const semanticActions=/querySelectorAll\('button'\)[\s\S]*?\^\(edit\|sync\)\$/i.test(ui);
+const legacyLastCell=/const actionCell=row\.cells\[row\.cells\.length-1\]/.test(ui);
+assert.ok(semanticActions||legacyLastCell,'robustness repair must identify the existing Actions cell');
+assert.match(ui,/row\.insertBefore\(cell,actionCell\)|cell\.nextElementSibling!==actionCell/,'robustness cells must be repaired immediately before Actions');
 
-assert.equal(pkg.version,'0.9.8');
-console.log('V0.9.8 TOC/EDC linking, request-load and column-order checks passed');
+const parts=String(pkg.version).split('.').map(Number);assert.equal(parts[0],0);assert.equal(parts[1],9);assert.ok(parts[2]>=8,'V0.9.8 regression contract must remain valid in later V0.9.x releases');
+console.log('V0.9.8+ TOC/EDC linking, request-load and column-order checks passed');
