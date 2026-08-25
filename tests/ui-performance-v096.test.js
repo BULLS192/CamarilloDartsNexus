@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 const root=fs.existsSync('/app/server.js')?'/app':process.cwd();
 const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
 const ui=read('public/v094-player-intel.js');
+const stats=read('public/v092-stats.js');
 const pkg=JSON.parse(read('package.json'));
 
 assert.doesNotMatch(ui,/ids\.slice\(0,200\).*Promise\.all/s,'Players boot must not fan out hundreds of TOC requests');
@@ -14,5 +15,10 @@ assert.match(ui,/observer\.disconnect\(\)/,'observer must disconnect during Nexu
 assert.match(ui,/setTimeout\(runEnhance,120\)/,'DOM enhancement must be debounced');
 assert.match(ui,/loadSelectedTocIntel/,'TOC detail should load on demand for the selected player');
 assert.match(ui,/dataset\.v096RobustnessSig/,'robustness cells should avoid redundant DOM writes');
+assert.match(stats,/getPlayersCached/,'Stats Sources must cache the Nexus player list');
+assert.match(stats,/Date\.now\(\)-playersCacheAt<60_000/,'Stats Sources player cache must avoid repeated full-directory reads');
+assert.doesNotMatch(stats,/Promise\.all\(\[api\('\/api\/players'\),api\(`/,'selected-source refresh must not refetch the full player list every time');
+assert.doesNotMatch(stats,/setInterval\(\(\)=>ensureUi\(\),4000\)/,'Stats Sources must not wake and rebuild every four seconds');
+assert.match(stats,/playersCache=null;playersCacheAt=0/,'explicit EDC refresh must invalidate the player cache');
 assert.equal(pkg.version,'0.9.6');
 console.log('V0.9.6 UI performance regression checks passed');
