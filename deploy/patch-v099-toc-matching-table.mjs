@@ -15,7 +15,6 @@ if(!toc.includes('export function canonicalPlayerName(')){
 }
 toc=toc.replace(/const pn=normalizeName\(player\?\.name\|\|`\$\{player\?\.firstName\|\|''\} \$\{player\?\.lastName\|\|''\}`\),tn=normalizeName\(toc\?\.playerName\|\|' '\);/g,
   "const pn=normalizeName(canonicalPlayerName(player)),tn=normalizeName(toc?.playerName||'');");
-// Handle the exact assembled source form without the stray-space fallback.
 toc=toc.replace("const pn=normalizeName(player?.name||`${player?.firstName||''} ${player?.lastName||''}`),tn=normalizeName(toc?.playerName||'');",
   "const pn=normalizeName(canonicalPlayerName(player)),tn=normalizeName(toc?.playerName||'');");
 toc=toc.replace("  const name=player?.name||`${player?.firstName||''} ${player?.lastName||''}`;\n  const norm=normalizeName(name); if(!norm)return[];",
@@ -40,10 +39,10 @@ ui=ui.replace(robustRe,`  function ensureRobustnessColumn(){
       const marked=[...row.cells].filter(c=>c.dataset?.v094==='robustness');let cell=marked.shift()||null;for(const extra of marked)extra.remove();
       if(!cell){cell=document.createElement('td');cell.dataset.v094='robustness'}
       if(actionCell){if(cell.parentElement!==row||cell.nextElementSibling!==actionCell)row.insertBefore(cell,actionCell)}else if(cell.parentElement!==row)row.appendChild(cell);
-      const p=playerForRow(row);if(!p){if(row.dataset.v099RobustnessSig!=='none'){cell.innerHTML='<span class="robustness-badge thin">R —</span>';row.dataset.v099RobustnessSig='none'}continue}
+      const p=playerForRow(row);if(!p){if(row.dataset.v096RobustnessSig!=='none'){cell.innerHTML='<span class="robustness-badge thin">R —</span>';row.dataset.v096RobustnessSig='none'}continue}
       const r=robustness(p),sig=[r.score,r.label,r.sample,r.coverage,r.agreement,r.freshness].join('|');
       row.dataset.robustness=String(r.score);row.dataset.sources=String(r.sources);row.dataset.hasBs=r.flags.bs?'1':'0';row.dataset.hasToc=r.flags.toc?'1':'0';row.dataset.hasEdc=r.flags.edc?'1':'0';row.dataset.hasCd=r.flags.cd?'1':'0';row.dataset.searchable=norm(\`${'${p.name||\'\'} ${p.nickname||\'\'} ${p.bullshooter?.id||\'\'} ${p.edc?.name||\'\'}'}\`);
-      if(row.dataset.v099RobustnessSig!==sig){cell.innerHTML=\`<span class="robustness-badge ${'${r.label.toLowerCase()}'}" title="Sample ${'${r.sample}'}/40 · Verified sources ${'${r.coverage}'}/30 · Agreement ${'${r.agreement}'}/20 · Freshness ${'${r.freshness}'}/10">R ${'${r.score}'}<small>${'${r.label}'}</small></span>\`;row.dataset.v099RobustnessSig=sig}
+      if(row.dataset.v096RobustnessSig!==sig){cell.innerHTML=\`<span class="robustness-badge ${'${r.label.toLowerCase()}'}" title="Sample ${'${r.sample}'}/40 · Verified sources ${'${r.coverage}'}/30 · Agreement ${'${r.agreement}'}/20 · Freshness ${'${r.freshness}'}/10">R ${'${r.score}'}<small>${'${r.label}'}</small></span>\`;row.dataset.v096RobustnessSig=sig}
     }
     applyColumnPrefs();applyPlayerFilters();
   }
