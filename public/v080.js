@@ -19,7 +19,7 @@
    if(cd&&title){while(host&&host!==scope&&!host.contains(title))host=host.parentElement}
    if(!host||host===scope)return;
    host.className='camarillo-nexus-brand';
-   host.innerHTML='<div class="camarillo-nexus-logo-wrap"><img src="/camarillo-logo.png?v=0803" alt="Camarillo Darts Nexus" class="camarillo-nexus-logo"></div><div class="camarillo-nexus-copy"><div class="camarillo-nexus-title">Camarillo Darts Nexus</div><div class="camarillo-nexus-subtitle">Competition Intelligence</div></div>';
+   host.innerHTML='<div class="camarillo-nexus-logo-wrap"><img src="/camarillo-logo-full.webp?v=0804" alt="Camarillo Darts Nexus" class="camarillo-nexus-logo"></div><div class="camarillo-nexus-copy"><div class="camarillo-nexus-title">Camarillo Darts Nexus</div><div class="camarillo-nexus-subtitle">Competition Intelligence</div></div>';
  }
  function renamePlatform(){
    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
