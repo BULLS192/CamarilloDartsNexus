@@ -74,6 +74,11 @@ COPY tests/stats-sources-ui.test.js /app/tests/stats-sources-ui.test.js
 COPY deploy/patch-v092-stats.mjs /tmp/patch-v092-stats.mjs
 RUN node /tmp/patch-v092-stats.mjs && rm /tmp/patch-v092-stats.mjs
 
+# V0.9.3: TOC reliability hardening for 100k+ Best-Known records.
+COPY tests/toc-v093.test.js /app/tests/toc-v093.test.js
+COPY deploy/patch-v093-toc-reliability.mjs /tmp/patch-v093-toc-reliability.mjs
+RUN node /tmp/patch-v093-toc-reliability.mjs && rm /tmp/patch-v093-toc-reliability.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
