@@ -110,6 +110,11 @@ COPY tests/player-linking-v098.test.js /app/tests/player-linking-v098.test.js
 COPY deploy/patch-v098-player-linking-cleanup.mjs /tmp/patch-v098-player-linking-cleanup.mjs
 RUN node /tmp/patch-v098-player-linking-cleanup.mjs && rm /tmp/patch-v098-player-linking-cleanup.mjs
 
+# V0.9.9: canonical PPD/TOC player matching and deterministic Robustness/Actions table layout.
+COPY tests/toc-table-v099.test.js /app/tests/toc-table-v099.test.js
+COPY deploy/patch-v099-toc-matching-table.mjs /tmp/patch-v099-toc-matching-table.mjs
+RUN node /tmp/patch-v099-toc-matching-table.mjs && rm /tmp/patch-v099-toc-matching-table.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
