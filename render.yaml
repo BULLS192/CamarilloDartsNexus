@@ -17,3 +17,7 @@ services:
         value: sb_publishable_L9GxbR8iPPRta8AResUJ1w_919i_EOf
       - key: CAMARILLO_STATE_TOKEN
         sync: false
+      - key: EDC_BACKGROUND_SYNC_MS
+        value: "600000"
+      - key: TOC_BACKGROUND_SYNC_MS
+        value: "21600000"
