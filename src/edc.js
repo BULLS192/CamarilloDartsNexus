@@ -1,0 +1,185 @@
+const DEFAULT_URL='https://docs.google.com/spreadsheets/u/1/d/e/2PACX-1vQUFyJVPm5vsleNgWMFGW7vt15u_UBmrpIvNC6IMNjdRdHeaBFZkm9WeZcGOeQ0YwWHocL11T2-zT1L/pubhtml?pli=1';
+const PARSER_VERSION='0.9.0-edc.1';
+const CACHE_MS=Math.max(60_000,Number(process.env.EDC_CACHE_MS)||10*60_000);
+const SOURCE_URL=process.env.EDC_PUBLISHED_URL||DEFAULT_URL;
+const headers={accept:'text/html,text/csv;q=0.9,*/*;q=0.8','user-agent':'Mozilla/5.0 CamarilloDartsNexus/0.9 EDC-adapter'};
+let cache={loadedAt:0,dataset:null,error:null};
+
+const num=value=>{
+  if(typeof value==='number'&&Number.isFinite(value))return value;
+  const text=String(value??'').trim().replace(/,/g,'').replace(/[^0-9.+-]/g,'');
+  if(!text||!/^[-+]?\d+(?:\.\d+)?$/.test(text))return null;
+  const n=Number(text);return Number.isFinite(n)?n:null;
+};
+const round=(value,digits=2)=>{const n=Number(value);if(!Number.isFinite(n))return null;const p=10**digits;return Math.round(n*p)/p};
+const decodeHtml=value=>String(value??'')
+  .replace(/<br\s*\/?>/gi,' ')
+  .replace(/&nbsp;/gi,' ')
+  .replace(/&amp;/gi,'&')
+  .replace(/&quot;/gi,'"')
+  .replace(/&#39;|&apos;/gi,"'")
+  .replace(/&lt;/gi,'<')
+  .replace(/&gt;/gi,'>')
+  .replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n)))
+  .replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCodePoint(parseInt(n,16)));
+const textOf=html=>decodeHtml(String(html??'').replace(/<[^>]+>/g,' ')).replace(/\s+/g,' ').trim();
+export const normalizeEdcName=value=>String(value??'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
+
+function cssBoldClasses(html){
+  const out=new Set();
+  for(const match of String(html??'').matchAll(/\.([A-Za-z0-9_-]+)\s*\{([^}]*)\}/g)){
+    if(/font-weight\s*:\s*(?:bold|[6-9]00)/i.test(match[2]))out.add(match[1]);
+  }
+  return out;
+}
+function parseHtmlRows(html){
+  const boldClasses=cssBoldClasses(html),rows=[];
+  for(const tr of String(html??'').matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)){
+    const cells=[];
+    for(const td of tr[1].matchAll(/<t[dh]\b([^>]*)>([\s\S]*?)<\/t[dh]>/gi)){
+      const attrs=td[1]||'',inner=td[2]||'';
+      const classes=(attrs.match(/class\s*=\s*["']([^"']+)["']/i)?.[1]||'').split(/\s+/).filter(Boolean);
+      const bold=/<(?:b|strong)\b/i.test(inner)||/font-weight\s*:\s*(?:bold|[6-9]00)/i.test(attrs)||classes.some(c=>boldClasses.has(c));
+      cells.push({text:textOf(inner),bold});
+    }
+    if(cells.some(c=>c.text))rows.push(cells);
+  }
+  return rows;
+}
+function parseCsvRows(csv){
+  const rows=[];let row=[],cell='',quoted=false;
+  const s=String(csv??'');
+  for(let i=0;i<s.length;i++){
+    const ch=s[i];
+    if(quoted){
+      if(ch==='"'&&s[i+1]==='"'){cell+='"';i++;}
+      else if(ch==='"')quoted=false;
+      else cell+=ch;
+    }else if(ch==='"')quoted=true;
+    else if(ch===','){row.push({text:cell.trim(),bold:false});cell='';}
+    else if(ch==='\n'){row.push({text:cell.trim(),bold:false});if(row.some(c=>c.text))rows.push(row);row=[];cell='';}
+    else if(ch!=='\r')cell+=ch;
+  }
+  row.push({text:cell.trim(),bold:false});if(row.some(c=>c.text))rows.push(row);
+  return rows;
+}
+
+const normalizedHeader=value=>normalizeEdcName(value).replace(/\s+/g,' ');
+function headerScore(cells){
+  const h=cells.map(c=>normalizedHeader(c.text));
+  const has=re=>h.some(x=>re.test(x));
+  let score=0;
+  if(has(/^(player|player name|name|dart player|playername)$/))score+=5;
+  if(has(/(^| )ppd($| )|points per dart/))score+=4;
+  if(has(/(^| )mpr($| )|marks per round/))score+=4;
+  if(has(/(^| )evp($| )|evp rating|verified player rating|^rating$/))score+=3;
+  if(has(/games|game count|games played|^gp$/))score+=2;
+  return score;
+}
+function detectHeaderRow(rows){
+  let best={index:-1,score:-1};
+  for(let i=0;i<Math.min(rows.length,30);i++){
+    const score=headerScore(rows[i]);if(score>best.score)best={index:i,score};
+  }
+  if(best.score<8)throw new Error('EDC sheet header row could not be identified.');
+  return best.index;
+}
+function findColumn(headers,patterns){
+  const h=headers.map(normalizedHeader);
+  for(const pattern of patterns){const i=h.findIndex(x=>pattern.test(x));if(i>=0)return i;}
+  return -1;
+}
+function mapColumns(headers){
+  return {
+    name:findColumn(headers,[/^(player|player name|name|dart player|playername)$/]),
+    ppd:findColumn(headers,[/(^| )ppd($| )/,/points per dart/]),
+    mpr:findColumn(headers,[/(^| )mpr($| )/,/marks per round/]),
+    rating:findColumn(headers,[/^evp$/,/evp rating/,/verified player rating/,/^rating$/]),
+    games:findColumn(headers,[/games played/,/game count/,/^games$/, /^gp$/]),
+    platform:findColumn(headers,[/^platform$/, /board platform/, /source/]),
+    updated:findColumn(headers,[/updated/,/date/,/season/])
+  };
+}
+function toRecords(rows,{sourceFormat='html'}={}){
+  const headerIndex=detectHeaderRow(rows),headers=rows[headerIndex].map(c=>c.text),columns=mapColumns(headers);
+  if(columns.name<0||columns.ppd<0||columns.mpr<0)throw new Error('EDC sheet is missing required Player/PPD/MPR columns.');
+  const records=[];
+  for(let i=headerIndex+1;i<rows.length;i++){
+    const cells=rows[i],name=cells[columns.name]?.text?.trim();if(!name)continue;
+    const ppd=num(cells[columns.ppd]?.text),mpr=num(cells[columns.mpr]?.text);
+    if(!Number.isFinite(ppd)&&!Number.isFinite(mpr))continue;
+    const publishedRating=columns.rating>=0?num(cells[columns.rating]?.text):null;
+    const calculatedRating=Number.isFinite(ppd)&&Number.isFinite(mpr)?round(ppd+10*mpr,2):null;
+    const rating=Number.isFinite(publishedRating)?round(publishedRating,2):calculatedRating;
+    const gamesRaw=columns.games>=0?num(cells[columns.games]?.text):null;
+    const bold=Boolean((columns.rating>=0&&cells[columns.rating]?.bold)||(columns.name>=0&&cells[columns.name]?.bold)||cells.some(c=>c.bold));
+    records.push({
+      name,normalizedName:normalizeEdcName(name),ppd:round(ppd,2),mpr:round(mpr,2),evpRating:rating,
+      calculatedEvpRating:calculatedRating,games:Number.isFinite(gamesRaw)?Math.max(0,Math.trunc(gamesRaw)):null,
+      preferredStyle:bold,platform:columns.platform>=0?(cells[columns.platform]?.text||null):null,
+      updatedText:columns.updated>=0?(cells[columns.updated]?.text||null):null,
+      sourceRow:i+1,sourceFormat,
+      ratingDelta:Number.isFinite(publishedRating)&&Number.isFinite(calculatedRating)?round(publishedRating-calculatedRating,2):null
+    });
+  }
+  return {records,headerIndex:headerIndex+1,headers,columns};
+}
+
+export function parseEdcPublishedHtml(html){return toRecords(parseHtmlRows(html),{sourceFormat:'published-html'});}
+export function parseEdcPublishedCsv(csv){return toRecords(parseCsvRows(csv),{sourceFormat:'published-csv'});}
+
+export function pickPreferredEdcRecord(records){
+  const rows=(Array.isArray(records)?records:[]).filter(Boolean);
+  if(!rows.length)return null;
+  const bold=rows.filter(r=>r.preferredStyle);
+  const pool=bold.length?bold:rows;
+  return [...pool].sort((a,b)=>(Number.isFinite(b.games)?b.games:-1)-(Number.isFinite(a.games)?a.games:-1)||(Number.isFinite(b.evpRating)?b.evpRating:-1)-(Number.isFinite(a.evpRating)?a.evpRating:-1)||a.sourceRow-b.sourceRow)[0];
+}
+function pubCsvUrl(url){
+  const u=new URL(url);const gid=u.searchParams.get('gid');
+  u.pathname=u.pathname.replace(/\/pubhtml\/?$/,'/pub');
+  u.search='';u.searchParams.set('output','csv');
+  if(gid){u.searchParams.set('gid',gid);u.searchParams.set('single','true');}
+  return u.toString();
+}
+async function fetchText(url){
+  const res=await fetch(url,{headers,signal:AbortSignal.timeout(15000)});
+  const text=await res.text();if(!res.ok)throw new Error(`EDC source ${res.status}`);return{text,url:res.url||url,status:res.status};
+}
+export async function loadEdcDataset({force=false,url=SOURCE_URL}={}){
+  const now=Date.now();if(!force&&cache.dataset&&cache.loadedAt&&now-cache.loadedAt<CACHE_MS&&url===cache.dataset.sourceUrl)return cache.dataset;
+  let htmlError=null,csvError=null,parsed=null,format=null,finalUrl=url;
+  try{const result=await fetchText(url);finalUrl=result.url;parsed=parseEdcPublishedHtml(result.text);if(parsed.records.length)format='published-html';}
+  catch(error){htmlError=error;}
+  if(!parsed?.records?.length){
+    try{const result=await fetchText(pubCsvUrl(url));finalUrl=result.url;parsed=parseEdcPublishedCsv(result.text);if(parsed.records.length)format='published-csv';}
+    catch(error){csvError=error;}
+  }
+  if(!parsed?.records?.length){const message=`EDC dataset unavailable: ${htmlError?.message||'HTML parse empty'}; ${csvError?.message||'CSV parse empty'}`;cache={loadedAt:now,dataset:null,error:message};throw new Error(message);}
+  const dataset={source:'edc-evp-published-sheet',sourceUrl:url,resolvedUrl:finalUrl,parserVersion:PARSER_VERSION,loadedAt:new Date(now).toISOString(),format,recordCount:parsed.records.length,headerRow:parsed.headerIndex,headers:parsed.headers,columns:parsed.columns,records:parsed.records};
+  cache={loadedAt:now,dataset,error:null};return dataset;
+}
+function nameScore(queryNorm,candidateNorm){
+  if(!queryNorm||!candidateNorm)return 0;if(queryNorm===candidateNorm)return 1000;
+  if(candidateNorm.startsWith(queryNorm)||queryNorm.startsWith(candidateNorm))return 800-Math.abs(candidateNorm.length-queryNorm.length);
+  if(candidateNorm.includes(queryNorm)||queryNorm.includes(candidateNorm))return 650-Math.abs(candidateNorm.length-queryNorm.length);
+  const q=new Set(queryNorm.split(' ')),c=new Set(candidateNorm.split(' '));let common=0;for(const x of q)if(c.has(x))common++;
+  return common?400+common*50-Math.abs(q.size-c.size)*10:0;
+}
+export async function searchEdcPlayers(query,{limit=20,force=false,url=SOURCE_URL}={}){
+  const dataset=await loadEdcDataset({force,url}),q=normalizeEdcName(query);if(!q)return[];
+  const scored=dataset.records.map(record=>({record,score:nameScore(q,record.normalizedName)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||(b.record.games??-1)-(a.record.games??-1));
+  return scored.slice(0,Math.max(1,Math.min(100,Number(limit)||20))).map(x=>({...x.record,matchScore:x.score}));
+}
+export async function findEdcPlayer(name,{force=false,url=SOURCE_URL}={}){
+  const candidates=await searchEdcPlayers(name,{limit:100,force,url}),q=normalizeEdcName(name);
+  const exact=candidates.filter(x=>x.normalizedName===q),pool=exact.length?exact:candidates.filter(x=>x.matchScore>=650);
+  const preferred=pickPreferredEdcRecord(pool);
+  return {query:name,normalizedQuery:q,exactMatch:Boolean(exact.length),preferred,candidates:pool.slice(0,20),selectionRule:'prefer bolded EDC row with highest games; otherwise highest-games row'};
+}
+export async function edcHealth({force=false,url=SOURCE_URL}={}){
+  try{const d=await loadEdcDataset({force,url});return{ok:true,source:d.source,sourceUrl:d.sourceUrl,resolvedUrl:d.resolvedUrl,parserVersion:d.parserVersion,loadedAt:d.loadedAt,format:d.format,recordCount:d.recordCount,headerRow:d.headerRow,headers:d.headers,columns:d.columns,cacheMs:CACHE_MS};}
+  catch(error){return{ok:false,source:'edc-evp-published-sheet',sourceUrl:url,parserVersion:PARSER_VERSION,error:error.message,cacheMs:CACHE_MS};}
+}
+export const EDC_DEFAULT_PUBLISHED_URL=DEFAULT_URL;
+export const EDC_PARSER_VERSION=PARSER_VERSION;
