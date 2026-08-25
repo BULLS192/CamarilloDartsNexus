@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root=fs.existsSync('/app/server.js')?'/app':process.cwd();
+const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
+const ui=read('public/v094-player-intel.js');
+const pkg=JSON.parse(read('package.json'));
+
+assert.doesNotMatch(ui,/ids\.slice\(0,200\).*Promise\.all/s,'Players boot must not fan out hundreds of TOC requests');
+assert.doesNotMatch(ui,/setInterval\(\(\)=>\{ensureIntelLayout\(\);ensurePlayerToolbar\(\);ensureRobustnessColumn\(\)\},5000\)/,'Players page must not force a full table rewrite every 5 seconds');
+assert.match(ui,/tocLinkByPlayerId=new Map\(\)/,'TOC links should use an O(1) player index');
+assert.match(ui,/playerByBsId=new Map\(\)/,'player row matching should use indexed BullShooter IDs');
+assert.match(ui,/robustnessCache=new Map\(\)/,'robustness calculations should be cached');
+assert.match(ui,/observer\.disconnect\(\)/,'observer must disconnect during Nexus-owned DOM updates');
+assert.match(ui,/setTimeout\(runEnhance,120\)/,'DOM enhancement must be debounced');
+assert.match(ui,/loadSelectedTocIntel/,'TOC detail should load on demand for the selected player');
+assert.match(ui,/dataset\.v096RobustnessSig/,'robustness cells should avoid redundant DOM writes');
+assert.equal(pkg.version,'0.9.6');
+console.log('V0.9.6 UI performance regression checks passed');
