@@ -50,6 +50,54 @@ ${routeAnchor}`;
 server=server.replace(routeAnchor,edcRoutes);
 fs.writeFileSync(serverPath,server);
 
+const ratingsPath=fs.existsSync('/app/src/ratings.js')?'/app/src/ratings.js':'src/ratings.js';
+let ratings=fs.readFileSync(ratingsPath,'utf8');
+const ratingsAnchor=`export function computeDisciplineRatings(player) {
+  const b=player.bullshooter||{}, c=player.camarillo||{};
+  const establishedPPD=initialEstablished(b.ppd,b.last50PPD,b.last20PPD,b.last10PPD);
+  const establishedMPR=initialEstablished(b.mpr,b.last50MPR,b.last20MPR,b.last10MPR);
+  return {
+    establishedPPD, establishedMPR,
+    handicapPPD: blendCamarillo(establishedPPD,c.last30PPD,c.last10PPD,c.games01||0),
+    handicapMPR: blendCamarillo(establishedMPR,c.last30MPR,c.last10MPR,c.gamesCricket||0)
+  };
+}`;
+if(!ratings.includes(ratingsAnchor))throw new Error('EDC patch: V0.8 ratings anchor not found');
+const ratingsReplacement=`export function externalDisciplineStats(player) {
+  const b=player.bullshooter||{}, e=player.edc||{};
+  const bsPPD=initialEstablished(b.ppd,b.last50PPD,b.last20PPD,b.last10PPD);
+  const bsMPR=initialEstablished(b.mpr,b.last50MPR,b.last20MPR,b.last10MPR);
+  const edcPPD=asNumber(e.ppd), edcMPR=asNumber(e.mpr);
+  const hasBsPPD=Number.isFinite(bsPPD), hasBsMPR=Number.isFinite(bsMPR);
+  const hasEdcPPD=Number.isFinite(edcPPD), hasEdcMPR=Number.isFinite(edcMPR);
+  return {
+    establishedPPD:hasBsPPD?round(bsPPD,2):(hasEdcPPD?round(edcPPD,2):null),
+    establishedMPR:hasBsMPR?round(bsMPR,2):(hasEdcMPR?round(edcMPR,2):null),
+    ppdSource:hasBsPPD?'bullshooter':(hasEdcPPD?'edc':null),
+    mprSource:hasBsMPR?'bullshooter':(hasEdcMPR?'edc':null),
+    bullshooterEstablishedPPD:hasBsPPD?round(bsPPD,2):null,
+    bullshooterEstablishedMPR:hasBsMPR?round(bsMPR,2):null,
+    edcPPD:hasEdcPPD?round(edcPPD,2):null,
+    edcMPR:hasEdcMPR?round(edcMPR,2):null,
+    ppdSourceSpread:hasBsPPD&&hasEdcPPD?round(bsPPD-edcPPD,2):null,
+    mprSourceSpread:hasBsMPR&&hasEdcMPR?round(bsMPR-edcMPR,2):null
+  };
+}
+
+export function computeDisciplineRatings(player) {
+  const c=player.camarillo||{}, external=externalDisciplineStats(player);
+  return {
+    establishedPPD:external.establishedPPD, establishedMPR:external.establishedMPR,
+    handicapPPD:blendCamarillo(external.establishedPPD,c.last30PPD,c.last10PPD,c.games01||0),
+    handicapMPR:blendCamarillo(external.establishedMPR,c.last30MPR,c.last10MPR,c.gamesCricket||0),
+    externalSources:{ppd:external.ppdSource,mpr:external.mprSource},
+    crossSourceSpread:{ppd:external.ppdSourceSpread,mpr:external.mprSourceSpread},
+    externalDiagnostics:external
+  };
+}`;
+ratings=ratings.replace(ratingsAnchor,ratingsReplacement);
+fs.writeFileSync(ratingsPath,ratings);
+
 const pkgPath=fs.existsSync('/app/package.json')?'/app/package.json':'package.json';
 const pkg=JSON.parse(fs.readFileSync(pkgPath,'utf8'));
 if(pkg.scripts?.check&&!pkg.scripts.check.includes('tests/edc.test.js'))pkg.scripts.check += ' && node --check src/edc.js && node tests/edc.test.js';
