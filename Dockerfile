@@ -48,6 +48,14 @@ COPY public/camarillo-logo-full.png /app/public/camarillo-logo-full.png
 COPY deploy/patch-v080.mjs /tmp/patch-v080.mjs
 RUN node /tmp/patch-v080.mjs && rm /tmp/patch-v080.mjs
 
+# V0.9: PPD / TOC Best-Known cache, history, identity linking and cross-source intelligence.
+COPY src/dartstoc-v090.js /app/src/dartstoc.js
+COPY public/v090.js /app/public/v090.js
+COPY public/v090.css /app/public/v090.css
+COPY tests/toc-v090.test.js /app/tests/toc-v090.test.js
+COPY deploy/patch-v090.mjs /tmp/patch-v090.mjs
+RUN node /tmp/patch-v090.mjs && rm /tmp/patch-v090.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
