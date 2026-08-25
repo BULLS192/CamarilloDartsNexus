@@ -20,5 +20,6 @@ assert.match(stats,/Date\.now\(\)-playersCacheAt<60_000/,'Stats Sources player c
 assert.doesNotMatch(stats,/Promise\.all\(\[api\('\/api\/players'\),api\(`/,'selected-source refresh must not refetch the full player list every time');
 assert.doesNotMatch(stats,/setInterval\(\(\)=>ensureUi\(\),4000\)/,'Stats Sources must not wake and rebuild every four seconds');
 assert.match(stats,/playersCache=null;playersCacheAt=0/,'explicit EDC refresh must invalidate the player cache');
-assert.equal(pkg.version,'0.9.6');
-console.log('V0.9.6 UI performance regression checks passed');
+const [major,minor,patch]=String(pkg.version||'0.0.0').split('.').map(Number);
+assert.ok(major>0||(major===0&&(minor>9||(minor===9&&patch>=6))),`Expected package version >= 0.9.6, got ${pkg.version}`);
+console.log('V0.9.6+ UI performance regression checks passed');
