@@ -45,13 +45,13 @@ const TOC_BACKGROUND_SYNC_MS=Math.max(60*60_000,Number(process.env.TOC_BACKGROUN
 const sourceSyncState={startedAt:null,edc:{running:false,lastStartedAt:null,lastFinishedAt:null,lastSuccessAt:null,lastRecordCount:null,error:null},toc:{lastTriggeredAt:null,lastRunId:null,error:null}};
 async function refreshEdcBackground(){
   if(sourceSyncState.edc.running)return;sourceSyncState.edc.running=true;sourceSyncState.edc.lastStartedAt=new Date().toISOString();sourceSyncState.edc.error=null;
-  try{const d=await loadEdcDataset({force:true});sourceSyncState.edc.lastRecordCount=d.recordCount;sourceSyncState.edc.lastSuccessAt=new Date().toISOString();console.log(`[EDC] background refresh complete: ${d.recordCount} records`)}
+  try{const d=await loadEdcDataset({force:true});sourceSyncState.edc.lastRecordCount=d.recordCount;sourceSyncState.edc.lastSuccessAt=new Date().toISOString();console.log('[EDC] background refresh complete: '+d.recordCount+' records')}
   catch(error){sourceSyncState.edc.error=error.message||String(error);console.error('[EDC] background refresh failed:',sourceSyncState.edc.error)}
   finally{sourceSyncState.edc.running=false;sourceSyncState.edc.lastFinishedAt=new Date().toISOString()}
 }
 async function refreshTocBackground(){
   sourceSyncState.toc.lastTriggeredAt=new Date().toISOString();sourceSyncState.toc.error=null;
-  try{const out=await startTocSync();sourceSyncState.toc.lastRunId=out.runId||sourceSyncState.toc.lastRunId||null;if(out.alreadyRunning)console.log('[TOC] background refresh skipped: sync already running');else console.log(`[TOC] background refresh started: ${out.runId||'run'}`)}
+  try{const out=await startTocSync();sourceSyncState.toc.lastRunId=out.runId||sourceSyncState.toc.lastRunId||null;if(out.alreadyRunning)console.log('[TOC] background refresh skipped: sync already running');else console.log('[TOC] background refresh started: '+(out.runId||'run'))}
   catch(error){sourceSyncState.toc.error=error.message||String(error);console.error('[TOC] background refresh failed to start:',sourceSyncState.toc.error)}
 }
 function startBackgroundSourceSync(){
@@ -60,7 +60,7 @@ function startBackgroundSourceSync(){
   const tocStartup=setTimeout(()=>void refreshTocBackground(),10_000);tocStartup.unref?.();
   const edcTimer=setInterval(()=>void refreshEdcBackground(),EDC_BACKGROUND_SYNC_MS);edcTimer.unref?.();
   const tocTimer=setInterval(()=>void refreshTocBackground(),TOC_BACKGROUND_SYNC_MS);tocTimer.unref?.();
-  console.log(`[Sources] background sync active: EDC every ${Math.round(EDC_BACKGROUND_SYNC_MS/60_000)}m; TOC every ${Math.round(TOC_BACKGROUND_SYNC_MS/3_600_000)}h`);
+  console.log('[Sources] background sync active: EDC every '+Math.round(EDC_BACKGROUND_SYNC_MS/60_000)+'m; TOC every '+Math.round(TOC_BACKGROUND_SYNC_MS/3_600_000)+'h');
 }
 async function sourceSyncStatus(){return{active:Boolean(sourceSyncState.startedAt),startedAt:sourceSyncState.startedAt,intervals:{edcMs:EDC_BACKGROUND_SYNC_MS,tocMs:TOC_BACKGROUND_SYNC_MS},edc:{...sourceSyncState.edc,health:await edcHealth()},toc:{...sourceSyncState.toc,status:await tocStatus()},identityPolicy:'External directories refresh automatically; player-to-source identity links remain manual and confirmed.'}}`;
 server=replaceRequired(server,portAnchor,backgroundConfig,'background source sync configuration');
