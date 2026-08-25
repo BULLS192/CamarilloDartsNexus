@@ -3,7 +3,6 @@ FROM node:20-bookworm-slim
 WORKDIR /app
 
 # Reconstruct the deployment source bundle committed under /bundle.
-# The player/contact database is intentionally excluded from this bundle.
 COPY bundle/ /tmp/camarillo-bundle/
 RUN cat \
   /tmp/camarillo-bundle/camarillo.part00 \
@@ -15,48 +14,41 @@ RUN cat \
   && tar -xzf /tmp/camarillo-source.tar.gz -C /app \
   && rm -rf /tmp/camarillo-bundle /tmp/camarillo-source.tar.gz
 
-# Apply persistence/backend verification from V0.7.4.
+# Apply the proven V0.7 persistence/sync evolution in order.
 COPY deploy/patch-v073.mjs /tmp/patch-v073.mjs
 RUN node /tmp/patch-v073.mjs && rm /tmp/patch-v073.mjs
-
-# Overlay actively maintained BullShooter parser and bulk-sync assets.
 COPY src/bullshooter.js /app/src/bullshooter.js
 COPY public/v075.css /app/public/v075.css
 COPY deploy/patch-v075.mjs /tmp/patch-v075.mjs
 RUN node /tmp/patch-v075.mjs && rm /tmp/patch-v075.mjs
-
-# V0.7.6 base Recent Performance selector support.
 COPY deploy/patch-v076.mjs /tmp/patch-v076.mjs
 RUN node /tmp/patch-v076.mjs && rm /tmp/patch-v076.mjs
-
-# V0.7.7: align with BullShooter Last 50 / 20 / 10.
 COPY public/v077.js /app/public/v077.js
 COPY deploy/patch-v077.mjs /tmp/patch-v077.mjs
 RUN node /tmp/patch-v077.mjs && rm /tmp/patch-v077.mjs
-
-# V0.7.8: reject bogus DOM values and retain structural diagnostics.
 COPY deploy/patch-v078.mjs /tmp/patch-v078.mjs
 RUN node /tmp/patch-v078.mjs && rm /tmp/patch-v078.mjs
-
-# V0.7.9: capture BullShooter XHR/fetch JSON and discover the underlying endpoints.
 COPY deploy/patch-v079.mjs /tmp/patch-v079.mjs
 RUN node /tmp/patch-v079.mjs && rm /tmp/patch-v079.mjs
-
-# V0.7.10: call BullShooter's fetch_games API directly and derive Last 50 / 20 / 10.
 COPY deploy/patch-v0710.mjs /tmp/patch-v0710.mjs
 RUN node /tmp/patch-v0710.mjs && rm /tmp/patch-v0710.mjs
-
-# V0.7.11: display separate BullShooter and Camarillo rating scores.
 COPY public/v0711.js /app/public/v0711.js
 COPY public/v0711.css /app/public/v0711.css
 COPY deploy/patch-v0711.mjs /tmp/patch-v0711.mjs
 RUN node /tmp/patch-v0711.mjs && rm /tmp/patch-v0711.mjs
-
-# V0.7.12: use structured BullShooter current stats and support one-discipline players safely.
 COPY deploy/patch-v0712.mjs /tmp/patch-v0712.mjs
 RUN node /tmp/patch-v0712.mjs && rm /tmp/patch-v0712.mjs
 
-RUN npm install --omit=dev && npx playwright install --with-deps chromium
+# V0.8: fast direct API sync, backup/audit foundation, new branding.
+COPY src/bullshooter-v080.js /app/src/bullshooter.js
+COPY public/v080.js /app/public/v080.js
+COPY public/v080.css /app/public/v080.css
+COPY public/camarillo-logo.png /app/public/camarillo-logo.png
+COPY deploy/patch-v080.mjs /tmp/patch-v080.mjs
+RUN node /tmp/patch-v080.mjs && rm /tmp/patch-v080.mjs
+
+# Normal sync no longer requires a browser install.
+RUN npm install --omit=dev
 RUN npm run check
 
 ENV NODE_ENV=production
