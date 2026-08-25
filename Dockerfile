@@ -48,6 +48,12 @@ COPY public/camarillo-logo-full.png /app/public/camarillo-logo-full.png
 COPY deploy/patch-v080.mjs /tmp/patch-v080.mjs
 RUN node /tmp/patch-v080.mjs && rm /tmp/patch-v080.mjs
 
+# V0.9 EDC intelligence: public EVP source adapter, resilient multi-source sync and rating fallback.
+COPY src/edc.js /app/src/edc.js
+COPY tests/edc.test.js /app/tests/edc.test.js
+COPY deploy/patch-v090-edc.mjs /tmp/patch-v090-edc.mjs
+RUN node /tmp/patch-v090-edc.mjs && rm /tmp/patch-v090-edc.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
