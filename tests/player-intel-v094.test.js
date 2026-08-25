@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root=fs.existsSync('/app/server.js')?'/app':process.cwd();
+const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
+const server=read('server.js'),ratings=read('src/ratings.js'),ui=read('public/v094-player-intel.js'),html=read('public/index.html'),pkg=JSON.parse(read('package.json'));
+assert.match(server,/\/api\/toc\/links/,'TOC link index route must exist');
+assert.match(server,/\/edc-link\$\/\);if\(m&&req\.method==='POST'/,'manual EDC link route must exist');
+assert.match(server,/EDC is not manually linked/,'EDC refresh must require a confirmed manual link');
+const syncStart=server.indexOf("m=matchPath(url,/^\\/api\\/players\\/([^/]+)\\/sync$/)");
+const syncEnd=server.indexOf("m=matchPath(url,/^\\/api\\/players\\/([^/]+)\\/edc-link$/)",syncStart);
+assert.ok(syncStart>=0&&syncEnd>syncStart,'player sync and EDC link routes must exist in order');
+const syncBlock=server.slice(syncStart,syncEnd);
+assert.doesNotMatch(syncBlock,/findEdcPlayer\(/,'generic player sync must not perform EDC name matching');
+assert.match(syncBlock,/manualOnly:true/,'generic player sync must explicitly report external manual-only sources');
+assert.match(ratings,/e\.confirmed===true\?asNumber\(e\.ppd\):null/,'unconfirmed EDC may not influence rating fallback');
+assert.match(ui,/Player Source Linking/);assert.match(ui,/Public View/);assert.match(ui,/Robustness/);assert.match(ui,/EDC \/ EVP/);assert.match(ui,/RAW/);
+assert.match(html,/v094-player-intel\.js/);assert.match(html,/v094-player-intel\.css/);assert.equal(pkg.version,'0.9.4');
+console.log('V0.9.4 player source-linking/privacy/robustness checks passed');
