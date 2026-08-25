@@ -105,6 +105,11 @@ COPY tests/toc-query-v097.test.js /app/tests/toc-query-v097.test.js
 COPY deploy/patch-v097-toc-query-performance.mjs /tmp/patch-v097-toc-query-performance.mjs
 RUN node /tmp/patch-v097-toc-query-performance.mjs && rm /tmp/patch-v097-toc-query-performance.mjs
 
+# V0.9.8: authorized TOC RPC fast paths, automatic candidate surfacing, request-loop cleanup and correct table column alignment.
+COPY tests/player-linking-v098.test.js /app/tests/player-linking-v098.test.js
+COPY deploy/patch-v098-player-linking-cleanup.mjs /tmp/patch-v098-player-linking-cleanup.mjs
+RUN node /tmp/patch-v098-player-linking-cleanup.mjs && rm /tmp/patch-v098-player-linking-cleanup.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
