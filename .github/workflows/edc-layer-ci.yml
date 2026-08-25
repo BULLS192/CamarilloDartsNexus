@@ -1,0 +1,22 @@
+name: EDC Layer CI
+
+on:
+  push:
+    branches:
+      - v0.9-edc-intelligence
+  pull_request:
+    paths:
+      - 'src/edc.js'
+      - 'deploy/patch-v090-edc.mjs'
+      - 'tests/edc.test.js'
+      - 'Dockerfile'
+      - '.github/workflows/edc-layer-ci.yml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Build deployment image and run checks
+        run: docker build --progress=plain -t camarillo-darts-edc-ci .
