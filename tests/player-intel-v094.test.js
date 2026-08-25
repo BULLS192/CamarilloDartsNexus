@@ -10,6 +10,9 @@ assert.match(server,/TOC_BACKGROUND_SYNC_MS=.*6\*60\*60_000/,'TOC background ref
 assert.match(server,/setInterval\(\(\)=>void refreshEdcBackground\(\),EDC_BACKGROUND_SYNC_MS\)/,'EDC background interval must be registered');
 assert.match(server,/setInterval\(\(\)=>void refreshTocBackground\(\),TOC_BACKGROUND_SYNC_MS\)/,'TOC background interval must be registered');
 assert.match(server,/startBackgroundSourceSync\(\)/,'background source sync must start with the server');
+assert.match(server,/refreshConfirmedEdcLinks\(dataset\)/,'background EDC refresh must refresh confirmed player links');
+assert.match(server,/p\?\.edc\?\.confirmed!==true\)continue/,'background EDC refresh must skip unconfirmed players');
+assert.match(server,/Background refresh of manually confirmed EDC record/,'confirmed EDC auto-refresh must preserve the manual identity policy');
 assert.match(server,/\/edc-link\$\/\);if\(m&&req\.method==='POST'/,'manual EDC link route must exist');
 assert.match(server,/EDC is not manually linked/,'EDC refresh must require a confirmed manual link');
 const syncStart=server.indexOf("m=matchPath(url,/^\\/api\\/players\\/([^/]+)\\/sync$/)");
