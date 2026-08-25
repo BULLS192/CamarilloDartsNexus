@@ -66,25 +66,17 @@ server=replaceRequired(
 const requestAnchor="const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,`http://${req.headers.host}`);";
 server=replaceRequired(server,requestAnchor,requestAnchor+"\n  if(url.pathname.startsWith('/api/')&&!['/api/toc/status','/api/source-sync/status'].includes(url.pathname)){lastInteractiveActivityAt=Date.now();process.env.TOC_USER_ACTIVE_UNTIL=String(Date.now()+60_000)}",'interactive request activity gate');
 
-// Manual TOC sync remains available and intentionally bypasses the automatic idle/freshness gate.
-server=replaceRequired(
-  server,
-  "if(url.pathname==='/api/toc/sync'&&req.method==='POST'){const out=await startTocSync();",
-  "if(url.pathname==='/api/toc/sync'&&req.method==='POST'){const out=await startTocSync();",
-  'manual TOC route preserved'
-);
-
 // Once a background crawl is running, yield between pages whenever a real Nexus API
 // interaction has recently occurred. This makes the web app win over the crawler.
 toc=replaceRequired(
   toc,
-  "    await sleep(PAGE_DELAY_MS);\n    html=await session.post(html,'ctl00$ContentPlaceHolder1$GridBestKnownOverall',`Page${'$'}${'${page}'}`,searchTerm);",
-  "    while(true){const activeUntil=Number(process.env.TOC_USER_ACTIVE_UNTIL)||0;if(activeUntil<=Date.now())break;await sleep(Math.min(5000,Math.max(250,activeUntil-Date.now())))}\n    await sleep(PAGE_DELAY_MS);\n    html=await session.post(html,'ctl00$ContentPlaceHolder1$GridBestKnownOverall',`Page${'$'}${'${page}'}`,searchTerm);",
+  "    await sleep(PAGE_DELAY_MS);\n    html=await session.post(html,'ctl00$ContentPlaceHolder1$GridBestKnownOverall',`Page$${page}`,searchTerm);",
+  "    while(true){const activeUntil=Number(process.env.TOC_USER_ACTIVE_UNTIL)||0;if(activeUntil<=Date.now())break;await sleep(Math.min(5000,Math.max(250,activeUntil-Date.now())))}\n    await sleep(PAGE_DELAY_MS);\n    html=await session.post(html,'ctl00$ContentPlaceHolder1$GridBestKnownOverall',`Page$${page}`,searchTerm);",
   'interactive crawl yielding'
 );
 
 toc=replaceRequired(toc,"if(p.page===1||p.page%25===0)","if(p.page===1||p.page%100===0)",'lighter checkpoint cadence');
-toc=toc.replace("const VERSION='0.9.4';","const VERSION='0.9.5';");
+toc=replaceRequired(toc,"const VERSION='0.9.4';","const VERSION='0.9.5';",'TOC version');
 fs.writeFileSync(tocPath,toc);
 
 server=server.replaceAll("version:'0.9.4'","version:'0.9.5'").replaceAll('Camarillo Darts V0.9.4 running','Camarillo Darts V0.9.5 running');
