@@ -27,10 +27,8 @@ toc=req(toc,
 }`,
 'TOC status count fast path');
 
-const searchStart="export async function searchTocDirectory({q='',state='',vendor='',limit=50,offset=0,active=true}={}){";
-const searchLocal="  const db=await readLocal(); let rows=(db.players||[]).filter(x=>active===false||x.active!==false);";
-const s0=toc.indexOf(searchStart),s1=toc.indexOf(searchLocal,s0);
-if(s0<0||s1<0)throw new Error('V0.9.8 patch: TOC search block not found');
+const searchRe=/export async function searchTocDirectory\(\{q='',state='',vendor='',limit=50,offset=0,active=true\}=\{\}\)\{[\s\S]*?\n\s*const db=await readLocal\(\);/;
+if(!searchRe.test(toc))throw new Error('V0.9.8 patch: TOC search block not found');
 const searchPrefix=`export async function searchTocDirectory({q='',state='',vendor='',limit=50,offset=0,active=true}={}){
   limit=Math.max(1,Math.min(250,Number(limit)||50)); offset=Math.max(0,Number(offset)||0);
   if(REMOTE){
@@ -43,8 +41,8 @@ const searchPrefix=`export async function searchTocDirectory({q='',state='',vend
     }});
     return (Array.isArray(data)?data:[]).map(fromRemotePlayer);
   }
-`;
-toc=toc.slice(0,s0)+searchPrefix+toc.slice(s1);
+  const db=await readLocal();`;
+toc=toc.replace(searchRe,searchPrefix);
 toc=toc.replace("const VERSION='0.9.7';","const VERSION='0.9.8';");
 fs.writeFileSync(tocPath,toc);
 
