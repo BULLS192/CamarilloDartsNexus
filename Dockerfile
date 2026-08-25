@@ -93,7 +93,7 @@ COPY tests/performance-v095.test.js /app/tests/performance-v095.test.js
 COPY deploy/patch-v095-performance.mjs /tmp/patch-v095-performance.mjs
 RUN node /tmp/patch-v095-performance.mjs && rm /tmp/patch-v095-performance.mjs
 
-# V0.9.6: eliminate Players-page request fan-out, mutation/render loops and stats polling.
+# V0.9.6: eliminate Players-page request fan-out, mutation/render loops and stats polling; final performance contract verified in-image.
 COPY tests/ui-performance-v096.test.js /app/tests/ui-performance-v096.test.js
 COPY deploy/patch-v096-ui-performance.mjs /tmp/patch-v096-ui-performance.mjs
 RUN node /tmp/patch-v096-ui-performance.mjs && rm /tmp/patch-v096-ui-performance.mjs
