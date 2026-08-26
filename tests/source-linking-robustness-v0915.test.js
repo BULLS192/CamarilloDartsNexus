@@ -10,7 +10,10 @@ assert.match(server,/setPlayerExternalSource\(p\.id,'edc',edc\)/,'manual EDC lin
 assert.match(server,/req\.method==='DELETE'/,'unlink routes must remain available');
 assert.match(playerUi,/recordKey:record\.recordKey\|\|''/,'main EDC link must send recordKey');
 assert.match(playerUi,/Unlink EDC record/,'EDC unlink action must be explicit');
-assert.match(playerUi,/window\.CDNexusRobustnessV0915\?\.refresh/,'legacy player-intelligence calls must delegate to the active robustness module');
+assert.match(playerUi,/window\.CDNexusRobustnessV0918\?\.refresh/,'legacy player-intelligence calls must delegate to the current canonical robustness renderer');
+const legacyEnsure=playerUi.match(/function ensureRobustnessColumn\(\)\{([\s\S]*?)\n\s*\}\n\s*function savedColumns/);
+assert.ok(legacyEnsure,'legacy compatibility hook must remain present');
+assert.doesNotMatch(legacyEnsure[1],/innerHTML|robustness\(p\)|robustness-badge/,'legacy player-intelligence must not repaint robustness');
 assert.match(identityUi,/recordKey:eb\.dataset\.recordKey/,'RAW EDC linking must forward recordKey');
 assert.match(tocUi,/Unlink this PPD\/TOC record/,'TOC unlink must require explicit confirmation');
 if(fs.existsSync(`${root}/src/robustness.js`)){const r=read('src/robustness.js');assert.match(r,/currentStatsDiagnostics\?\.x01Count/,'robustness must use BullShooter X01 evidence');assert.match(r,/currentStatsDiagnostics\?\.cricketCount/,'robustness must use BullShooter Cricket evidence')}else{const r=read('public/v0915-robustness.js');assert.match(r,/currentStatsDiagnostics\?\.x01Count/);assert.match(r,/currentStatsDiagnostics\?\.cricketCount/)}
