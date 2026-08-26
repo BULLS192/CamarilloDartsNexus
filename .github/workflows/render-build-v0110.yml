@@ -1,0 +1,14 @@
+name: Render Build V0.11.0
+
+on:
+  push:
+    branches:
+      - diagnostic/v0110-render-build
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build exact Render Docker image
+        run: docker build --progress=plain -t camarillo-v0110 .
