@@ -17,10 +17,9 @@ assert.doesNotMatch(store,/rpc\/camarillo_nexus_rating_index/,'transport must no
 assert.match(server,/\/api\/players\/nexus-rating[\s\S]{0,200}getNexusRatingIndexSql/);
 assert.match(ui,/entry\?\.robustness/);assert.match(ui,/robustCell\.innerHTML=robustnessMarkup\(r\)/);assert.match(ui,/ratingCell\.innerHTML=ratingMarkup\(entry\)/);assert.match(ui,/Nexus Rating \$\{fmt\(entry\.rating,1\)\}\/150/);assert.match(ui,/window\.CDNexusPlayerMetricsV1001/);assert.doesNotMatch(ui,/subtree:true/);
 
-// V0.10.4 regression: V0.10.3 rebuilt the 12-column schema but left newly-created
-// BullShooter cells blank and allowed legacy row-index repainting to clobber sorted rows.
+// V0.10.4 established one canonical owner for all Players-table metric cells.
 const expected="['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO','NEXUS RATING','ROBUSTNESS','ACTIONS']";
-assert.ok(ui.includes(expected),'V0.10.4 must own the canonical 12-column Players schema');
+assert.ok(ui.includes(expected),'V0.10.5 must retain the canonical 12-column Players schema');
 assert.match(ui,/function canonicalize\(t\)/,'metrics owner must structurally canonicalize the live table');
 assert.match(ui,/take\('BS50','BS30'\)/,'legacy BS30 must map into the canonical BS50 position');
 assert.match(ui,/take\('BS20'\)/,'canonicalization must create or preserve a BS20 position');
@@ -43,13 +42,28 @@ assert.ok(canonPos>=0&&ratingPos>canonPos,'canonicalization must happen before m
 assert.match(ui,/state\.observer\.observe\(body,\{childList:true\}\)/,'renderer must recover when base player rows are replaced/sorted');
 assert.match(ui,/state\.observer\.observe\(head,\{childList:true\}\)/,'renderer must recover when headers are replaced');
 
+// V0.10.5 live-production regression: the BullShooter cell may concatenate its
+// synced subtext immediately after #123456. A trailing word-boundary rejected those
+// rows, and the old textContent name fallback could include male/female subtext.
+const parseBs=text=>String(text||'').match(/#\s*(\d{3,})/)?.[1]||'';
+assert.equal(parseBs('#267261Synced 8/24/2026'),'267261','live BullShooter IDs must parse even when sync subtext is concatenated');
+assert.equal(parseBs('#62894 Synced 8/24/2026'),'62894');
+assert.ok(ui.includes("match(/#\\s*(\\d{3,})/)"),'renderer must use the loose hash-digit BullShooter matcher');
+assert.ok(!ui.includes("match(/#\\s*(\\d{3,})\\b/)"),'renderer must not require a trailing word boundary after BullShooter ID');
+assert.match(ui,/const rowName=row=>/,'renderer must isolate the primary player name');
+assert.match(ui,/\[data-player-name\],\.player-name,strong,b/,'primary-name selector must prefer an explicit name element');
+assert.match(ui,/replace\(\/\\s\*\(\?:male\|female\)\\s\*\$\/i,''\)/,'fallback name text must strip trailing gender metadata');
+assert.match(ui,/const key=norm\(rowName\(row\)\)/,'row identity must use the cleaned player name');
+assert.match(ui,/nameKey:norm\(rowName\(row\)\)/,'row identity must preserve the cleaned name key for metric lookup');
+assert.match(ui,/identity\.nameKey\|\|norm\(identity\.player\?\.name\|\|''\)/,'metric lookup must use the cleaned row-name key even before a player object resolves');
+
 assert.doesNotMatch(html,/v0918-table\.js/,'obsolete V0.9 robustness runtime must remain retired');
-assert.match(html,/v1000-rating\.js\?v=0\.10\.4/,'identity-mapped unified runtime must be cache-busted to V0.10.4');
-assert.match(html,/v1000-rating\.css\?v=0\.10\.4/,'metrics CSS must be cache-busted to V0.10.4');
+assert.match(html,/v1000-rating\.js\?v=0\.10\.5/,'live identity-mapped runtime must be cache-busted to V0.10.5');
+assert.match(html,/v1000-rating\.css\?v=0\.10\.5/,'metrics CSS must be cache-busted to V0.10.5');
 const legacyEnsure=legacyPlayer.match(/function ensureRobustnessColumn\(\)\{([\s\S]*?)\n\s*\}\n\s*function savedColumns/);assert.ok(legacyEnsure);assert.match(legacyEnsure[1],/CDNexusPlayerMetricsV1001/);assert.doesNotMatch(legacyEnsure[1],/innerHTML|robustness\(p\)|CDNexusRobustnessV0918/);assert.doesNotMatch(legacyPlayer,/s\.src='\/v0918-table\.js/);
 const patchRatings=legacyRating.match(/async function patchRatings\(\)\{([\s\S]*?)\n\s*\}\n\n\s*let timer=null;/);assert.ok(patchRatings);assert.match(patchRatings[1],/CDNexusPlayerMetricsV1001/);assert.doesNotMatch(patchRatings[1],/innerHTML|ratingMarkup\(|ratingsFor\(/);
 const patchDisplays=legacyBull.match(/async function patchDisplays\(\)\{([\s\S]*?)\n\s*\}\n\n\s*async function enhanceDiagnostics/);assert.ok(patchDisplays,'legacy BullShooter repaint function must remain structurally present');assert.match(patchDisplays[1],/CDNexusPlayerMetricsV1001/);assert.doesNotMatch(patchDisplays[1],/players\[idx\]|last50PPD|last20PPD|last10PPD|innerHTML/,'legacy BullShooter renderer must not repaint rows by array position');
-const marker=JSON.parse(read('.v1001-player-metrics-applied'));assert.equal(marker.version,'0.10.4');assert.equal(marker.source,'camarillo_player_metrics_index');assert.deepEqual(marker.owns,['bs-current','bs50','bs20','bs10','nexus-rating','robustness']);assert.equal(marker.legacyBullshooterWriter,false);assert.equal(marker.legacyRobustnessRuntime,false);assert.equal(marker.legacyRatingWriter,false);
-const tableMarker=JSON.parse(read('.v1003-player-table-applied'));assert.equal(tableMarker.version,'0.10.4');assert.deepEqual(tableMarker.statCells,{bsCurrent:4,bs50:5,bs20:6,bs10:7,nexusRating:9,robustness:10,actions:11});assert.deepEqual(tableMarker.rowMatch,['bullshooter-id','player-id','unique-name']);
-assert.equal(pkg.version,'0.10.4','deployment image must identify as V0.10.4');
-console.log('V0.10.4 unified player metrics passed: identity-mapped BS Current/50/20/10 + Nexus Rating + Robustness, with formula values unchanged.');
+const marker=JSON.parse(read('.v1001-player-metrics-applied'));assert.equal(marker.version,'0.10.5');assert.equal(marker.source,'camarillo_player_metrics_index');assert.deepEqual(marker.owns,['bs-current','bs50','bs20','bs10','nexus-rating','robustness']);assert.equal(marker.bullshooterIdMatch,'hash-digits-without-trailing-boundary');assert.equal(marker.nameFallback,'primary-name-with-gender-strip');assert.equal(marker.legacyBullshooterWriter,false);assert.equal(marker.legacyRobustnessRuntime,false);assert.equal(marker.legacyRatingWriter,false);
+const tableMarker=JSON.parse(read('.v1003-player-table-applied'));assert.equal(tableMarker.version,'0.10.5');assert.deepEqual(tableMarker.statCells,{bsCurrent:4,bs50:5,bs20:6,bs10:7,nexusRating:9,robustness:10,actions:11});assert.deepEqual(tableMarker.rowMatch,['bullshooter-id-loose-hash','player-id','primary-unique-name']);
+assert.equal(pkg.version,'0.10.5','deployment image must identify as V0.10.5');
+console.log('V0.10.5 live player metrics passed: production BullShooter IDs + primary-name fallback map NX/Robustness to the correct rows.');
