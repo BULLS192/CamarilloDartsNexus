@@ -176,6 +176,11 @@ COPY tests/nexus-rating-v1000.test.js /app/tests/nexus-rating-v1000.test.js
 COPY deploy/patch-v1000-nexus-rating.mjs /tmp/patch-v1000-nexus-rating.mjs
 RUN node /tmp/patch-v1000-nexus-rating.mjs && rm /tmp/patch-v1000-nexus-rating.mjs
 
+# V0.10.1: native 150-point Nexus Rating + unified SQL-backed Robustness; one browser owner for both cells.
+COPY tests/player-metrics-v1001.test.js /app/tests/player-metrics-v1001.test.js
+COPY deploy/patch-v1001-unified-player-metrics.mjs /tmp/patch-v1001-unified-player-metrics.mjs
+RUN node /tmp/patch-v1001-unified-player-metrics.mjs && rm /tmp/patch-v1001-unified-player-metrics.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
