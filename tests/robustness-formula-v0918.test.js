@@ -30,8 +30,8 @@ assert.match(ui,/const EXPECTED=\['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CU
 assert.match(ui,/state\.data\?\.byBullshooterId/,'renderer must consume robustness API by BullShooter ID');
 assert.match(ui,/function bullshooterId\(row\).*row\.cells\[3\]/s,'renderer must extract ID from BullShooter column');
 assert.match(store,/export async function listRobustnessPlayersRaw\(\)[\s\S]*?rpc\/camarillo_state_read[\s\S]*?Array\.isArray\(raw\.players\)[\s\S]*?structuredClone\(raw\.players\)/,'backend must read raw Supabase state before normalization');
-assert.match(server,/const players=await listRobustnessPlayersRaw\(\),links=await listTocLinks/,'robustness endpoint must use raw stored players');
-assert.match(server,/robustnessIndex\(players,\{links\}\)/,'endpoint must return the fixed robustness index');
+assert.match(server,/const players=await listRobustnessPlayersRaw\(\),links=await listTocLinks\(\)\.catch\(\(\)=>\[\]\),result=robustnessIndex\(players,\{links\}\)/,'robustness endpoint must build the index from raw stored players');
+assert.match(server,/diagnostics:\{source:'raw-state',playerCount:players\.length,indexedBullshooterCount:Object\.keys\(result\.byBullshooterId\|\|\{\}\)\.length\}/,'endpoint must expose non-sensitive indexing diagnostics');
 assert.match(docker,/COPY src\/robustness-v0918\.js \/app\/src\/robustness\.js/,'Docker must install the robustness module actually under test');
 assert.match(docker,/COPY deploy\/patch-v0918-robustness-formula\.mjs \/tmp\/patch-v0918-robustness-formula\.mjs/,'Docker must copy the robustness backend patch');
 assert.match(docker,/RUN node \/tmp\/patch-v0918-robustness-formula\.mjs/,'Docker must execute the robustness backend patch');
