@@ -19,10 +19,10 @@ assert.match(ui,/observer\.disconnect\(\)/,'observer must disconnect during Nexu
 assert.match(ui,/setTimeout\(runEnhance,120\)/,'DOM enhancement must be debounced');
 assert.match(ui,/loadSelectedTocIntel/,'TOC detail should load on demand for the selected player');
 if(unified){
-  assert.match(ui,/CDNexusPlayerMetricsV1001\?\.refresh/,'legacy player intelligence must delegate to the V0.10.1 unified metrics renderer');
+  assert.match(ui,/CDNexusPlayerMetricsV1001\?\.refresh/,'legacy player intelligence must delegate to the unified metrics renderer');
   assert.doesNotMatch(ui,/function ensureRobustnessColumn\(\)[\s\S]{0,500}(?:innerHTML|robustness\(p\)|robustness-badge)/,'legacy player intelligence must not repaint or recalculate Robustness');
-  assert.match(metrics,/dataset\.v1001RobustSig/,'unified renderer must avoid redundant Robustness DOM writes with a stable signature');
-  assert.match(metrics,/dataset\.v1001RatingSig/,'unified renderer must avoid redundant Nexus Rating DOM writes with a stable signature');
+  assert.match(metrics,/dataset\.v\d+RobustSig/,'unified renderer must avoid redundant Robustness DOM writes with a stable signature');
+  assert.match(metrics,/dataset\.v\d+RatingSig/,'unified renderer must avoid redundant Nexus Rating DOM writes with a stable signature');
   assert.match(metrics,/state\.timer=setTimeout\(render,80\)/,'unified renderer must debounce observer-driven refreshes');
   assert.doesNotMatch(metrics,/subtree:true/,'unified renderer must not watch nested mutations');
 }else if(robust){
