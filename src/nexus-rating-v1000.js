@@ -11,18 +11,10 @@ export function establishedMetric(current,last50,last20,last10){
   return num(current);
 }
 
-export function normalizePPD(ppd){
-  const v=num(ppd);return v===null?null:clamp(((v-10)/25)*100,0,100);
-}
-export function normalizeMPR(mpr){
-  const v=num(mpr);return v===null?null:clamp(((v-1)/3.5)*100,0,100);
-}
 export function combinedRating(ppd,mpr){
-  const p=normalizePPD(ppd),m=normalizeMPR(mpr);
-  if(p===null&&m===null)return null;
-  if(p===null)return round(m,1);
-  if(m===null)return round(p,1);
-  return round((p+m)/2,1);
+  const p=num(ppd),m=num(mpr);
+  if(p===null||m===null)return null;
+  return round(p+10*m,1);
 }
 export function gameWeight(games,cap,maxPoints){
   const g=Math.max(0,num(games)||0);return clamp(g/cap,0,1)*maxPoints;
@@ -52,10 +44,10 @@ export function computeNexusRating(player,{toc=null,tocConfirmed=false}={}){
     bsMPR:bsMPR===null?0:gameWeight(cricket,50,20),
     edcPPD:edcConfirmed&&edcPPD!==null?(edcGames===null?5:gameWeight(edcGames,80,15)):0,
     edcMPR:edcConfirmed&&edcMPR!==null?(edcGames===null?5:gameWeight(edcGames,80,15)):0,
-    tocPPD:tocPPD===null?0:15,
-    tocMPR:tocMPR===null?0:15,
-    cdPPD:cdPPD===null?0:gameWeight(cd01,30,20),
-    cdMPR:cdMPR===null?0:gameWeight(cdCricket,30,20)
+    tocPPD:tocPPD===null?0:10,
+    tocMPR:tocMPR===null?0:10,
+    cdPPD:cdPPD===null?0:gameWeight(cd01,30,10),
+    cdMPR:cdMPR===null?0:gameWeight(cdCricket,30,10)
   };
 
   const nexusPPD=weightedMean([
@@ -74,6 +66,9 @@ export function computeNexusRating(player,{toc=null,tocConfirmed=false}={}){
   };
   return {
     rating:combinedRating(nexusPPD,nexusMPR),
+    ratingScaleMax:150,
+    formula:'PPD + 10*MPR',
+    ratingWeights:{bullshooter:40,edc:30,toc:20,camarillo:20},
     nexusPPD:round(nexusPPD,2),nexusMPR:round(nexusMPR,2),
     evidenceWeight:round(Object.values(sourceWeights).reduce((a,v)=>a+v,0),1),
     sourceWeights:Object.fromEntries(Object.entries(sourceWeights).map(([k,v])=>[k,round(v,1)])),
