@@ -125,8 +125,17 @@ COPY tests/source-loading-v0911.test.js /app/tests/source-loading-v0911.test.js
 COPY deploy/patch-v0911-progressive-source-loading.mjs /tmp/patch-v0911-progressive-source-loading.mjs
 RUN node /tmp/patch-v0911-progressive-source-loading.mjs && rm /tmp/patch-v0911-progressive-source-loading.mjs
 
-# V0.9.12 is temporarily disabled in production after a Players-page responsiveness regression.
-# Source remains in the repository for diagnosis; deployed runtime intentionally stops at V0.9.11.
+# V0.9.12 feature set: verified identity aliases, manual RAW source linking and deterministic robustness.
+COPY public/v0912-identity.js /app/public/v0912-identity.js
+COPY public/v0912-identity.css /app/public/v0912-identity.css
+COPY tests/player-identity-v0912.test.js /app/tests/player-identity-v0912.test.js
+COPY deploy/patch-v0912-player-identity-robustness.mjs /tmp/patch-v0912-player-identity-robustness.mjs
+RUN node /tmp/patch-v0912-player-identity-robustness.mjs && rm /tmp/patch-v0912-player-identity-robustness.mjs
+
+# V0.9.13: make RAW identity enhancement idempotent to prevent MutationObserver feedback loops.
+COPY tests/identity-observer-v0913.test.js /app/tests/identity-observer-v0913.test.js
+COPY deploy/patch-v0913-identity-safety.mjs /tmp/patch-v0913-identity-safety.mjs
+RUN node /tmp/patch-v0913-identity-safety.mjs && rm /tmp/patch-v0913-identity-safety.mjs
 
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
