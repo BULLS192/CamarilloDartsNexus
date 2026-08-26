@@ -5,7 +5,8 @@ const paths={
   server:fs.existsSync('/app/server.js')?'/app/server.js':'server.js',
   player:fs.existsSync('/app/public/v094-player-intel.js')?'/app/public/v094-player-intel.js':'public/v094-player-intel.js',
   index:fs.existsSync('/app/public/index.html')?'/app/public/index.html':'public/index.html',
-  pkg:fs.existsSync('/app/package.json')?'/app/package.json':'package.json'
+  pkg:fs.existsSync('/app/package.json')?'/app/package.json':'package.json',
+  marker:fs.existsSync('/app')?'/app/.v0920-robustness-applied':'.v0920-robustness-applied'
 };
 const need=(s,n,label)=>{if(!s.includes(n))throw new Error(`V0.9.20 patch: ${label} anchor not found`)};
 
@@ -39,3 +40,4 @@ pkg.description='Camarillo Darts Nexus fixed robustness formula using raw persis
 if(!pkg.scripts)pkg.scripts={};
 for(const cmd of ['node --check public/v0918-table.js','node tests/robustness-formula-v0918.test.js'])if(!String(pkg.scripts.check||'').includes(cmd))pkg.scripts.check+=(pkg.scripts.check?' && ':'')+cmd;
 fs.writeFileSync(paths.pkg,JSON.stringify(pkg,null,2)+'\n');
+fs.writeFileSync(paths.marker,JSON.stringify({version:'0.9.20',source:'raw-state',route:'/api/players/robustness'})+'\n');
