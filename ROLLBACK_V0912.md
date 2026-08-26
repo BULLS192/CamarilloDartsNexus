@@ -1,0 +1,1 @@
+Temporary production rollback marker: V0.9.12 Player Identity & Robustness is disabled in the Docker build because it caused a Players-page responsiveness regression. The V0.9.12 source files remain in the repository for diagnosis, but the deployed patch chain stops at V0.9.11 until a safer replacement is validated.
