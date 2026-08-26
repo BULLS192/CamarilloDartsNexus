@@ -16,8 +16,9 @@ const half=scorePlayerRobustness(halfBs);assert.equal(half.components.bullshoote
 const full={...base,edc:{confirmed:true,games:80},bullshooter:{id:'123456',currentStatsDiagnostics:{x01Count:50,cricketCount:50}}};
 const fullScore=scorePlayerRobustness(full,{tocLink:{confirmed:true}});assert.equal(fullScore.score,100,'30 + 30 + 20 + 20 must equal 100');
 const over={...full,bullshooter:{id:'123456',currentStatsDiagnostics:{x01Count:500,cricketCount:500}},edc:{confirmed:true,games:999}};assert.equal(scorePlayerRobustness(over,{tocLink:{confirmed:true}}).score,100,'robustness must never exceed 100');
-assert.equal(bullshooter501Games({currentStatsDiagnostics:{x01Count:41},last50PPDSampleSize:50}),50,'known 501 sample evidence should use the strongest known count');
-assert.equal(bullshooterCricketGames({currentStatsDiagnostics:{cricketCount:49},last50MPRSampleSize:50}),50,'known Cricket sample evidence should use the strongest known count');
+assert.equal(bullshooter501Games({currentStatsDiagnostics:{x01Count:41},last50PPDSampleSize:50}),41,'authoritative 501 game count must win over a conflicting sample size');
+assert.equal(bullshooterCricketGames({currentStatsDiagnostics:{cricketCount:49},last50MPRSampleSize:50}),49,'authoritative Cricket game count must win over a conflicting sample size');
+assert.equal(bullshooter501Games({currentStatsDiagnostics:{x01Count:null},last50PPDSampleSize:50}),50,'sample evidence remains a fallback when the authoritative count is missing');
 const idx=robustnessIndex([full],{links:[{playerId:'p1',confirmed:true}]});assert.equal(idx.byBullshooterId['123456'].score,100);assert.equal(idx.formulaVersion,'0.9.18');
 
 const ui=read('public/v0918-table.js'),server=read('server.js'),html=read('public/index.html'),pkg=JSON.parse(read('package.json'));
@@ -28,5 +29,5 @@ assert.match(ui,/BullShooter 501 \$\{c\.bullshooter501\?\?0\}\/20/);
 assert.match(ui,/BullShooter Cricket \$\{c\.bullshooterCricket\?\?0\}\/20/);
 assert.match(server,/robustnessIndex\(players,\{links\}\)/,'robustness endpoint should not fetch TOC detail rows merely to calculate robustness');
 assert.match(html,/v0918-table\.js/);assert.doesNotMatch(html,/v0917-table\.js/,'V0.9.17 table renderer must not compete with V0.9.18');
-assert.equal(pkg.version,'0.9.18');
-console.log('V0.9.18 fixed robustness formula and canonical Players table checks passed');
+const [maj,min,patch]=String(pkg.version).split('.').map(Number);assert.ok(maj>0||min>9||(min===9&&patch>=18),'package must be V0.9.18 or later');
+console.log('V0.9.18+ fixed robustness formula and canonical Players table checks passed');
