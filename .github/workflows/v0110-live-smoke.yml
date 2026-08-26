@@ -1,0 +1,43 @@
+name: V0.11.0 Live Smoke
+
+on:
+  push:
+    branches:
+      - diagnostic/v0110-live-smoke
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Verify live production
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://camarillo-darts.onrender.com'
+          echo '--- health ---'
+          curl -fsS --retry 5 --retry-delay 2 "$BASE/health" | tee /tmp/health
+          echo
+          echo '--- homepage assets/version ---'
+          curl -fsS --retry 5 --retry-delay 2 "$BASE/" -o /tmp/home.html
+          grep -q 'v1000-rating.js?v=0.11.0' /tmp/home.html
+          grep -q 'v1000-rating.css?v=0.11.0' /tmp/home.html
+          grep -q 'V0.11.0' /tmp/home.html
+          echo 'V0.11.0 HTML/assets: PASS'
+          echo '--- live metrics ---'
+          curl -fsS --retry 5 --retry-delay 2 "$BASE/api/players/nexus-rating" -o /tmp/metrics.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const j=JSON.parse(fs.readFileSync('/tmp/metrics.json','utf8'));
+          if(j.formulaVersion!=='2.0.0') throw Error(`formulaVersion=${j.formulaVersion}`);
+          if(j.metricsVersion!=='2.0.0') throw Error(`metricsVersion=${j.metricsVersion}`);
+          const k=j.byBullshooterId?.['192985'];
+          if(!k) throw Error('Kevin 192985 missing from metrics payload');
+          if(Math.abs(Number(k.rating)-41.7)>0.11) throw Error(`Kevin NX expected 41.7, got ${k.rating}`);
+          if(Number(k.camarilloRating)!==0) throw Error(`Kevin Camarillo expected 0, got ${k.camarilloRating}`);
+          if(Number(k.sourceWeights?.camarillo)!==0) throw Error(`Kevin Camarillo weight expected 0, got ${k.sourceWeights?.camarillo}`);
+          const w=k.bullshooterWindowRatings||{};
+          if(Math.abs(Number(w.bs50)-42.3)>0.11||Math.abs(Number(w.bs20)-40.3)>0.11||Math.abs(Number(w.bs10)-40.3)>0.11) throw Error(`Kevin BS windows unexpected: ${JSON.stringify(w)}`);
+          console.log(`Metrics V${j.metricsVersion} formula V${j.formulaVersion}: PASS`);
+          console.log(`Kevin: BS50 ${w.bs50} | BS20 ${w.bs20} | BS10 ${w.bs10} | NX ${k.rating} | CD ${k.camarilloRating} | R ${k.robustness?.score}`);
+          console.log(`Players in rating payload: ${j.count}; robustness records: ${j.robustnessCount}`);
+          NODE
