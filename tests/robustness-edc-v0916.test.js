@@ -13,7 +13,7 @@ const idx=robustnessIndex([kevin,derek]);assert.equal(idx.byBullshooterId['19298
 
 const server=read('server.js'),store=read('src/store.js'),html=read('public/index.html'),pkg=JSON.parse(read('package.json'));
 assert.match(server,/\/api\/players\/robustness/,'server must expose one bulk robustness endpoint');
-assert.match(server,/robustnessIndex\(players,\{links(?:,tocById)?\}\)/,'robustness endpoint must score server-side');
+assert.ok(/robustnessIndex\(players,\{links(?:,tocById)?\}\)/.test(server)||/const result=await getRobustnessIndexSql\(\);return json\(res,200,result\)/.test(server),'robustness endpoint must score server-side or proxy an authoritative server-side SQL score index');
 assert.match(store,/export async function setPlayerExternalSource\(/,'EDC must have a dedicated persistence primitive');
 const postStart=server.indexOf("m=matchPath(url,/^\\/api\\/players\\/([^/]+)\\/edc-link$/);if(m&&req.method==='POST')"),postEnd=server.indexOf("if(m&&req.method==='DELETE')",postStart);assert.ok(postStart>=0&&postEnd>postStart);const post=server.slice(postStart,postEnd);assert.match(post,/setPlayerExternalSource\(p\.id,'edc',edc\)/);assert.doesNotMatch(post,/loadEdcDataset\(/,'manual EDC link must save the selected snapshot without re-fetching the source');
 const syncStart=server.indexOf("m=matchPath(url,/^\\/api\\/players\\/([^/]+)\\/edc-sync$/)"),syncEnd=server.indexOf('\n  }',syncStart)+4,sync=server.slice(syncStart,syncEnd);assert.match(sync,/same\.length===1/);assert.match(sync,/Multiple EDC records still use this player name/,'ambiguous duplicate-name EDC refresh must remain manual');assert.match(sync,/setPlayerExternalSource\(p\.id,'edc',edc\)/);
