@@ -1,4 +1,3 @@
-const num=v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const nonneg=v=>Math.max(0,Number(v)||0);
 const maxKnown=(...values)=>Math.max(0,...values.map(v=>nonneg(v)));
@@ -32,21 +31,25 @@ export function robustnessLabel(score){
 }
 
 export function scorePlayerRobustness(player,{tocLink=null}={}){
-  const b=player?.bullshooter||{},e=player?.edc||{};
+  const b=player?.bullshooter||{},e=player?.edc||{},c=player?.camarillo||{};
   const bs501Games=bullshooter501Games(b),bsCricketGames=bullshooterCricketGames(b);
   const edcGames=e?.confirmed===true?nonneg(e.games):0;
 
+  // Fixed V0.9.18 robustness formula (maximum 100):
+  // EDC: up to 30 points at 80 games; PPD/TOC verified link: 30 points;
+  // BullShooter 501: up to 20 points at 50 games; BullShooter Cricket: up to 20 points at 50 games.
   const edcPoints=30*clamp(edcGames/80,0,1);
   const tocPoints=tocLink&&tocLink.confirmed!==false?30:0;
   const bs501Points=20*clamp(bs501Games/50,0,1);
   const bsCricketPoints=20*clamp(bsCricketGames/50,0,1);
   const score=Math.round(clamp(edcPoints+tocPoints+bs501Points+bsCricketPoints,0,100));
   const label=robustnessLabel(score);
+  const cdGames=nonneg(c.games01)+nonneg(c.gamesCricket);
   const flags={
     bs:Boolean(bs501Games>0||bsCricketGames>0),
     toc:Boolean(tocPoints>0),
     edc:Boolean(e?.confirmed===true),
-    cd:false
+    cd:Boolean(cdGames>0||c.last30PPD!=null||c.last30MPR!=null)
   };
 
   return{
