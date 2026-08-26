@@ -8,14 +8,16 @@
   const headerIndex=(t,...names)=>{const wanted=names.map(upper);return[...t.querySelectorAll('thead th')].findIndex(h=>wanted.includes(upper(h.textContent)))};
   const fmt=(v,d=1)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
   const sourceLine=(entry,key,label)=>{
-    const w=Number(entry?.sourceWeights?.[key]||0),r=entry?.sourceRatings?.[key];
+    const w=Number(entry?.sourceWeights?.[key]||0),b=Number(entry?.sourceBaseWeights?.[key]||0),r=entry?.sourceRatings?.[key],a=Number(entry?.agreementFactors?.[key]||1),o=Number(entry?.outlierFactors?.[key]||1),i=Number(entry?.independenceFactors?.[key]||1);
     if(!(w>0)||!Number.isFinite(Number(r)))return null;
-    return`${label} ${Number(r).toFixed(1)} @ ${w.toFixed(1)}w`;
+    const factors=[];if(Math.abs(a-1)>.001)factors.push(`agree×${a.toFixed(2)}`);if(Math.abs(o-1)>.001)factors.push(`outlier×${o.toFixed(2)}`);if(Math.abs(i-1)>.001)factors.push(`independent×${i.toFixed(2)}`);
+    return`${label} ${Number(r).toFixed(1)} @ ${w.toFixed(1)}w${b>0&&Math.abs(b-w)>.01?` (base ${b.toFixed(1)}${factors.length?', '+factors.join(', '):''})`:factors.length?` (${factors.join(', ')})`:''}`;
   };
   const ratingMarkup=entry=>{
     if(!entry||!Number.isFinite(Number(entry.rating)))return'<div class="nexus-rating-block missing"><div class="nx-main"><span>NX</span><strong>—</strong></div></div>';
     const lines=[sourceLine(entry,'bullshooter','BS'),sourceLine(entry,'edc','EDC'),sourceLine(entry,'toc','TOC'),sourceLine(entry,'camarillo','CD')].filter(Boolean);
-    const title=`Nexus Rating ${fmt(entry.rating,1)}/150 · ${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR${lines.length?' · '+lines.join(' · '):''}`;
+    const consensus=Number(entry.sourceCount||0)>1?` · ${entry.sourceCount} sources${Number.isFinite(Number(entry.consensusMedian))?` · median ${fmt(entry.consensusMedian,1)}`:''}`:'';
+    const title=`Nexus Rating ${fmt(entry.rating,1)}/150 · ${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR${consensus}${lines.length?' · '+lines.join(' · '):''}`;
     return`<div class="nexus-rating-block" title="${title}"><div class="nx-main"><span>NX</span><strong>${fmt(entry.rating,1)}</strong></div><small>${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR</small></div>`;
   };
   const robustnessMarkup=r=>{
@@ -78,7 +80,7 @@
   async function load(){
     if(state.loading)return;state.loading=true;
     try{state.data=await api('/api/players/nexus-rating');render()}
-    catch(e){console.warn('V0.10.1 Player Metrics:',e)}
+    catch(e){console.warn('V0.10.2 Player Metrics:',e)}
     finally{state.loading=false}
   }
   function boot(){
