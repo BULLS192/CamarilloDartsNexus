@@ -63,5 +63,6 @@ assert.doesNotMatch(server,/\/api\/players\/robustness'[\s\S]{0,500}listRobustne
 const marker=JSON.parse(read('.v0923-robustness-applied'));assert.equal(marker.version,'0.9.23','final image must contain V0.9.23 patch execution marker');assert.equal(marker.source,'camarillo_robustness_index');assert.equal(marker.route,'/api/players/robustness');assert.equal(marker.renderer,'v0918-only');assert.equal(marker.runtimeLoader,'v094-watchdog');
 assert.match(html,/<script src="\/v0918-table\.js\?v=0\.9\.23" data-cdnexus-robustness-runtime="v0918"><\/script>/,'built HTML must contain an explicit cache-busted canonical renderer tag');
 assert.doesNotMatch(html,/v0917-table\.js/,'only the canonical table renderer may be active');
-assert.equal(pkg.version,'0.9.23');
-console.log('V0.9.23 robustness runtime contract passed: SQL 192985 => R36 and canonical renderer is guaranteed to load');
+const [major=0,minor=0,patch=0]=String(pkg.version).split('.').map(Number);
+assert.ok(major>0||minor>9||(minor===9&&patch>=23),'V0.9.23 robustness runtime contract must survive later releases');
+console.log('V0.9.23+ robustness runtime contract passed: SQL 192985 => R36 and canonical renderer is guaranteed to load');
