@@ -4,6 +4,7 @@ import { canonicalPlayerName, scoreCandidate } from '../src/dartstoc.js';
 
 const root=fs.existsSync('/app/public/v094-player-intel.js')?'/app':process.cwd();
 const ui=fs.readFileSync(`${root}/public/v094-player-intel.js`,'utf8');
+const robust=fs.existsSync(`${root}/public/v0915-robustness.js`)?fs.readFileSync(`${root}/public/v0915-robustness.js`,'utf8'):'';
 const pkg=JSON.parse(fs.readFileSync(`${root}/package.json`,'utf8'));
 
 const player={name:'Laine “THE BLUEBONNET” Lyzak',firstName:'Laine',lastName:'Lyzak',state:'TX',gender:'female'};
@@ -19,8 +20,14 @@ assert.equal(canonicalPlayerName(fallback),'Laine Lyzak');
 const version=String(pkg.version||'0.0.0').split('.').map(Number);
 assert.ok(version[0]>0||version[1]>9||(version[1]===9&&version[2]>=9),'package version must be V0.9.9 or later');
 assert.match(ui,/cdNexusPlayerColumnsV099/,'V0.9.9 must reset stale column-layout preferences');
-assert.match(ui,/row\.insertBefore\(cell,actionCell\)/,'Robustness cell must be inserted directly before the actual action cell');
-assert.match(ui,/\^\(edit\|sync\)\$/i,'Action cell must be identified by Edit\/Sync buttons, not a shifted numeric index');
-assert.match(ui,/robustHeader.*insertBefore\(robustHeader,actionsHeader\)/s,'Robustness header must sit directly before Actions');
+if(robust){
+  assert.match(robust,/if\(act\)act\.before\(cell\)/,'Robustness cell must be inserted directly before the actual action cell');
+  assert.match(robust,/\^\(edit\|sync\)\$/i,'Action cell must be identified by Edit\/Sync buttons, not a shifted numeric index');
+  assert.match(robust,/if\(aidx>=0\)heads\[aidx\]\.before\(th\)/,'Robustness header must sit directly before Actions');
+}else{
+  assert.match(ui,/row\.insertBefore\(cell,actionCell\)/,'Robustness cell must be inserted directly before the actual action cell');
+  assert.match(ui,/\^\(edit\|sync\)\$/i,'Action cell must be identified by Edit\/Sync buttons, not a shifted numeric index');
+  assert.match(ui,/robustHeader.*insertBefore\(robustHeader,actionsHeader\)/s,'Robustness header must sit directly before Actions');
+}
 
 console.log('V0.9.9+ TOC canonical matching and Robustness/Actions layout checks passed');
