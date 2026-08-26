@@ -115,6 +115,11 @@ COPY tests/toc-table-v099.test.js /app/tests/toc-table-v099.test.js
 COPY deploy/patch-v099-toc-matching-table.mjs /tmp/patch-v099-toc-matching-table.mjs
 RUN node /tmp/patch-v099-toc-matching-table.mjs && rm /tmp/patch-v099-toc-matching-table.mjs
 
+# V0.9.10: authorized RPC app-state reads with short server cache and concurrent-read deduplication.
+COPY tests/state-read-v0910.test.js /app/tests/state-read-v0910.test.js
+COPY deploy/patch-v0910-state-read-stability.mjs /tmp/patch-v0910-state-read-stability.mjs
+RUN node /tmp/patch-v0910-state-read-stability.mjs && rm /tmp/patch-v0910-state-read-stability.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
