@@ -19,6 +19,13 @@ if(html.includes('/v1000-rating.js')){
   assert.match(unified,/robustCell\.innerHTML=robustnessMarkup\(r\)/,'unified runtime must display Robustness in the dedicated cell');
   assert.match(unified,/ratingCell\.innerHTML=ratingMarkup\(entry\)/,'unified runtime must display Nexus Rating in the dedicated cell');
   assert.doesNotMatch(html,/v0918-table\.js/,'V0.10.1+ must not load a competing V0.9 robustness writer');
+  if(/function renderBullshooter\(row,idx,player\)/.test(unified)){
+    assert.match(unified,/current:headerIndex\(t,'BS CURRENT'\),bs50:headerIndex\(t,'BS50'\),bs20:headerIndex\(t,'BS20'\),bs10:headerIndex\(t,'BS10'\)/,'unified renderer must resolve BullShooter columns by headers');
+    assert.match(bull,/async function patchDisplays\(\)\{[\s\S]{0,300}CDNexusPlayerMetricsV1001/,'retired BullShooter table renderer must delegate to unified metrics');
+    assert.doesNotMatch(bull,/async function patchDisplays\(\)\{[\s\S]{0,700}last50PPD/,'legacy BullShooter table renderer must not repaint rows once unified metrics owns the table');
+  }else{
+    assert.match(bull,/const cur=idx\('BS CURRENT'\),i50=idx\('BS50'\),i20=idx\('BS20'\),i10=idx\('BS10'\)/,'BullShooter display must resolve columns by headers');
+  }
 }else{
   assert.match(rating,/ratingIdx=hs\.findIndex/,'BS/CD rating must resolve its header semantically');
   const active=html.includes('/v0918-table.js')?read('public/v0918-table.js'):read('public/v0917-table.js');
@@ -31,9 +38,9 @@ if(html.includes('/v1000-rating.js')){
     assert.match(active,/cell\.dataset\.v0917Sig!==sig\|\|!cell\.querySelector\('\.robustness-badge'\)/,'V0.9.17 must repair overwritten robustness cells');
   }
   assert.match(active,/R \$\{entry\.score\}/,'Robustness cell must display the robustness score, not the rating block');
+  assert.doesNotMatch(bull,/cells\[4\]\.textContent/,'BullShooter current may not use a hard-coded cell index');
+  assert.match(bull,/const cur=idx\('BS CURRENT'\),i50=idx\('BS50'\),i20=idx\('BS20'\),i10=idx\('BS10'\)/,'BullShooter display must resolve columns by headers');
 }
-assert.doesNotMatch(bull,/cells\[4\]\.textContent/,'BullShooter current may not use a hard-coded cell index');
-assert.match(bull,/const cur=idx\('BS CURRENT'\),i50=idx\('BS50'\),i20=idx\('BS20'\),i10=idx\('BS10'\)/,'BullShooter display must resolve columns by headers');
 assert.doesNotMatch(html,/v0916-robustness\.js/,'old renderer must not compete with current table ownership');
 const parts=String(pkg.version).split('.').map(Number);assert.ok(parts[0]>0||parts[1]>9||(parts[1]===9&&parts[2]>=17),'package must be V0.9.17 or later');
 console.log('V0.9.17+ semantic player-table contract checks passed');
