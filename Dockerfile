@@ -161,12 +161,20 @@ COPY tests/table-contract-v0917.test.js /app/tests/table-contract-v0917.test.js
 COPY deploy/patch-v0917-table-contract.mjs /tmp/patch-v0917-table-contract.mjs
 RUN node /tmp/patch-v0917-table-contract.mjs && rm /tmp/patch-v0917-table-contract.mjs
 
-# V0.9.18: fixed 0-100 robustness formula and one canonical Players table schema.
+# V0.9.18 / V0.9.21: SQL-backed robustness formula and one canonical Players table schema.
 COPY src/robustness-v0918.js /app/src/robustness.js
 COPY public/v0918-table.js /app/public/v0918-table.js
 COPY tests/robustness-formula-v0918.test.js /app/tests/robustness-formula-v0918.test.js
 COPY deploy/patch-v0918-robustness-formula.mjs /tmp/patch-v0918-robustness-formula.mjs
 RUN node /tmp/patch-v0918-robustness-formula.mjs && rm /tmp/patch-v0918-robustness-formula.mjs
+
+# V0.9.22: Nexus Rating V2 — robust BS/TOC/EDC/Camarillo blending, confidence, form and progressive Camarillo weight.
+COPY src/nexus-rating-v0922.js /app/src/nexus-rating.js
+COPY public/v0922-nexus-rating.js /app/public/v0922-nexus-rating.js
+COPY public/v0922-nexus-rating.css /app/public/v0922-nexus-rating.css
+COPY tests/nexus-rating-v0922.test.js /app/tests/nexus-rating-v0922.test.js
+COPY deploy/patch-v0922-nexus-rating-v2.mjs /tmp/patch-v0922-nexus-rating-v2.mjs
+RUN node /tmp/patch-v0922-nexus-rating-v2.mjs && rm /tmp/patch-v0922-nexus-rating-v2.mjs
 
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
