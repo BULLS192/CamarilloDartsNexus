@@ -22,6 +22,9 @@ export function bullshooterCricketGames(b={}){
   );
 }
 
+// Backward-compatible aggregate evidence helper for older regression contracts.
+export function bullshooterEvidenceGames(b={}){return bullshooter501Games(b)+bullshooterCricketGames(b)}
+
 export function robustnessLabel(score){
   if(score>=85)return'Verified';
   if(score>=70)return'Strong';
