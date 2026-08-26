@@ -16,10 +16,11 @@ assert.match(scored.method,/exact-name/);
 const fallback={name:'Laine “THE BLUEBONNET” Lyzak'};
 assert.equal(canonicalPlayerName(fallback),'Laine Lyzak');
 
-assert.equal(pkg.version,'0.9.9');
+const version=String(pkg.version||'0.0.0').split('.').map(Number);
+assert.ok(version[0]>0||version[1]>9||(version[1]===9&&version[2]>=9),'package version must be V0.9.9 or later');
 assert.match(ui,/cdNexusPlayerColumnsV099/,'V0.9.9 must reset stale column-layout preferences');
 assert.match(ui,/row\.insertBefore\(cell,actionCell\)/,'Robustness cell must be inserted directly before the actual action cell');
 assert.match(ui,/\^\(edit\|sync\)\$/i,'Action cell must be identified by Edit\/Sync buttons, not a shifted numeric index');
 assert.match(ui,/robustHeader.*insertBefore\(robustHeader,actionsHeader\)/s,'Robustness header must sit directly before Actions');
 
-console.log('V0.9.9 TOC canonical matching and Robustness/Actions layout checks passed');
+console.log('V0.9.9+ TOC canonical matching and Robustness/Actions layout checks passed');
