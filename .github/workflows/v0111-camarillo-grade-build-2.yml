@@ -1,0 +1,12 @@
+name: V0.11.1 Camarillo Grade Build 2
+on:
+  push:
+    branches:
+      - diagnostic/v0111-camarillo-grade-build-2
+jobs:
+  docker-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build exact Render Docker image
+        run: docker build --progress=plain -t camarillo-v0111 .
