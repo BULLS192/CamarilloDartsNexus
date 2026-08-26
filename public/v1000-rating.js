@@ -15,7 +15,7 @@
   const ratingMarkup=entry=>{
     if(!entry||!Number.isFinite(Number(entry.rating)))return'<div class="nexus-rating-block missing"><div class="nx-main"><span>NX</span><strong>—</strong></div></div>';
     const lines=[sourceLine(entry,'bullshooter','BS'),sourceLine(entry,'edc','EDC'),sourceLine(entry,'toc','TOC'),sourceLine(entry,'camarillo','CD')].filter(Boolean);
-    const title=`Nexus Rating ${fmt(entry.rating,1)}/100 · ${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR${lines.length?' · '+lines.join(' · '):''}`;
+    const title=`Nexus Rating ${fmt(entry.rating,1)}/150 · ${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR${lines.length?' · '+lines.join(' · '):''}`;
     return`<div class="nexus-rating-block" title="${title}"><div class="nx-main"><span>NX</span><strong>${fmt(entry.rating,1)}</strong></div><small>${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR</small></div>`;
   };
   const robustnessMarkup=r=>{
