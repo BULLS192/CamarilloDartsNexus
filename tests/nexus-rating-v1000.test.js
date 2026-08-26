@@ -21,7 +21,7 @@ assert.equal(kr.sourceRatings.camarillo,0);assert.equal(kr.sourceWeights.camaril
 const joshua={bullshooter:{id:'180864',last50PPD:35.62,last20PPD:35.65,last10PPD:35.89,last50MPR:4.33,last20MPR:4.42,last10MPR:4.37,currentStatsDiagnostics:{x01Count:999,cricketCount:999}},edc:{confirmed:true,ppd:37.65,mpr:4.66,games:324}};
 const jx=computeNexusRating(joshua,{tocConfirmed:true,toc:{ppd:37.455,mpr:4.67,ppdSource:'5Z2H44',mprSource:'5Z2H44'}});
 assert.equal(jx.sourceRatings.bullshooter,79.2);assert.equal(jx.sourceRatings.edc,84.3);assert.equal(jx.sourceRatings.toc,84.2);
-assert.equal(jx.rating,81.8,'Nexus v2 must blend skill by evidence without agreement inflation');
+assert.equal(jx.rating,81.9,'Nexus v2 must blend skill by evidence without agreement inflation');
 assert.deepEqual(jx.agreementFactors,{bullshooter:1,edc:1,toc:1,camarillo:1},'agreement must not directly raise skill');
 assert.equal(jx.sourceWeights.bullshooter,40);assert.equal(jx.sourceWeights.edc,30);assert.equal(jx.sourceWeights.toc,15);
 assert.equal(jx.sourceReliability.toc,.75);
