@@ -8,7 +8,7 @@
   const table=()=>document.querySelector('#playerRows')?.closest('table')||[...document.querySelectorAll('#players table')].find(t=>[...t.querySelectorAll('thead th')].some(h=>upper(h.textContent)==='BULLSHOOTER'))||null;
   const headerIndex=(t,...names)=>{const wanted=names.map(upper);return[...t.querySelectorAll('thead th')].findIndex(h=>wanted.includes(upper(h.textContent)))};
   const actionCell=row=>[...row.cells].find(c=>[...c.querySelectorAll('button')].some(b=>/^(edit|sync)$/i.test(b.textContent.trim())))||null;
-  const fmt=(v,d=1)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
+  const fmt=(v,d=1)=>v===null||v===undefined||v===''?'—':(Number.isFinite(Number(v))?Number(v).toFixed(d):'—');
   const pairMarkup=(ppd,mpr,label)=>`${fmt(ppd,2)} / ${fmt(mpr,2)}<span class="sub">${label}</span>`;
   const sourceLine=(entry,key,label)=>{
     const w=Number(entry?.sourceWeights?.[key]||0),b=Number(entry?.sourceBaseWeights?.[key]||0),r=entry?.sourceRatings?.[key],a=Number(entry?.agreementFactors?.[key]||1),o=Number(entry?.outlierFactors?.[key]||1),i=Number(entry?.independenceFactors?.[key]||1);
