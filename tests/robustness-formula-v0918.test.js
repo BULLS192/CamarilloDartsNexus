@@ -16,7 +16,7 @@ assert.equal(scorePlayerRobustness(full,{tocLink:{confirmed:true}}).score,100,'m
 assert.equal(bullshooter501Games({currentStatsDiagnostics:{x01Count:41}}),41);
 assert.equal(bullshooterCricketGames({currentStatsDiagnostics:{cricketCount:69}}),69);
 
-// These values were calculated directly against production camarillo_players.raw_data using the V0.9.21 SQL formula.
+// These values were calculated directly against production camarillo_players.raw_data using the SQL formula.
 const productionSql={
   '192985':{score:36,x01:41,cricket:69},
   '209797':{score:40,x01:85,cricket:933},
@@ -29,17 +29,29 @@ assert.equal(productionSql['209797'].score,40,'Derek production SQL score must b
 assert.equal(productionSql['246446'].score,35,'Jessica production SQL score must be R35');
 assert.equal(productionSql['99755'].score,100,'Laine production SQL score must be R100 with confirmed EDC + TOC');
 
-const ui=read('public/v0918-table.js'),server=read('server.js'),store=read('src/store.js'),html=read('public/index.html'),pkg=JSON.parse(read('package.json'));
+const ui=read('public/v0918-table.js'),legacy=read('public/v094-player-intel.js'),server=read('server.js'),store=read('src/store.js'),html=read('public/index.html'),pkg=JSON.parse(read('package.json'));
 assert.match(ui,/const EXPECTED=\['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO','BS \/ CD RATING','ROBUSTNESS','ACTIONS'\]/,'Players table schema must remain canonical');
 assert.match(ui,/state\.data\?\.byBullshooterId/,'renderer must consume robustness API by BullShooter ID');
 assert.match(ui,/function bullshooterId\(row\).*row\.cells\[3\]/s,'renderer must extract ID from BullShooter column');
 assert.match(ui,/R \$\{entry\.score\}/,'renderer must display numeric robustness returned by API');
+
+// Regression for the real V0.9.21 production failure: V0.9.4 used to repaint the same cell.
+const ensureMatch=legacy.match(/function ensureRobustnessColumn\(\)\{([\s\S]*?)\n  \}\n  function savedColumns/);
+assert.ok(ensureMatch,'legacy player-intelligence compatibility function must still exist');
+assert.match(ensureMatch[1],/CDNexusRobustnessV0918\?\.refresh/,'legacy layer must delegate robustness rendering to V0.9.18+');
+assert.doesNotMatch(ensureMatch[1],/innerHTML|robustness\(p\)|robustness-badge/,'legacy layer must never paint a Robustness cell');
+const filterMatch=legacy.match(/function applyPlayerFilters\(\)\{([\s\S]*?)\n  \}\n  function ensurePlayerToolbar/);
+assert.ok(filterMatch,'player filters must still exist');
+assert.match(filterMatch[1],/row\.dataset\.robustness/,'robustness filtering must use the canonical rendered score');
+assert.match(filterMatch[1],/row\.dataset\.hasBs/,'source filtering must use canonical source flags');
+assert.doesNotMatch(filterMatch[1],/robustness\(p\)/,'filters must not recalculate legacy robustness');
+
 assert.match(store,/export async function getRobustnessIndexSql\(\)/,'backend must expose dedicated SQL robustness reader');
 assert.match(store,/rpc\/camarillo_robustness_index/,'backend must call the dedicated Supabase robustness RPC');
 assert.match(store,/!body\.byBullshooterId/,'backend must reject malformed robustness indexes');
 assert.match(server,/const result=await getRobustnessIndexSql\(\);return json\(res,200,result\)/,'robustness endpoint must proxy SQL result directly');
 assert.doesNotMatch(server,/\/api\/players\/robustness'[\s\S]{0,500}listRobustnessPlayersRaw/,'robustness API must not depend on app-state normalization');
-const marker=JSON.parse(read('.v0921-robustness-applied'));assert.equal(marker.version,'0.9.21','final image must contain V0.9.21 patch execution marker');assert.equal(marker.source,'camarillo_robustness_index');assert.equal(marker.route,'/api/players/robustness');
+const marker=JSON.parse(read('.v0922-robustness-applied'));assert.equal(marker.version,'0.9.22','final image must contain V0.9.22 patch execution marker');assert.equal(marker.source,'camarillo_robustness_index');assert.equal(marker.route,'/api/players/robustness');assert.equal(marker.renderer,'v0918-only');
 assert.match(html,/v0918-table\.js/);assert.doesNotMatch(html,/v0917-table\.js/,'only the canonical table renderer may be active');
-assert.equal(pkg.version,'0.9.21');
-console.log('V0.9.21 SQL robustness end-to-end contract passed: production 192985 => R36');
+assert.equal(pkg.version,'0.9.22');
+console.log('V0.9.22 single-renderer robustness contract passed: SQL 192985 => R36 and V0.9.4 cannot repaint it');
