@@ -148,6 +148,13 @@ COPY tests/source-linking-robustness-v0915.test.js /app/tests/source-linking-rob
 COPY deploy/patch-v0915-edc-robustness-unlink.mjs /tmp/patch-v0915-edc-robustness-unlink.mjs
 RUN node /tmp/patch-v0915-edc-robustness-unlink.mjs && rm /tmp/patch-v0915-edc-robustness-unlink.mjs
 
+# V0.9.16: server-calculated robustness, row/header visibility repair and snapshot-first EDC persistence.
+COPY src/robustness-v0916.js /app/src/robustness.js
+COPY public/v0916-robustness.js /app/public/v0916-robustness.js
+COPY tests/robustness-edc-v0916.test.js /app/tests/robustness-edc-v0916.test.js
+COPY deploy/patch-v0916-server-robustness-edc.mjs /tmp/patch-v0916-server-robustness-edc.mjs
+RUN node /tmp/patch-v0916-server-robustness-edc.mjs && rm /tmp/patch-v0916-server-robustness-edc.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
