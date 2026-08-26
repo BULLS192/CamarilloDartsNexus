@@ -23,5 +23,7 @@ assert.doesNotMatch(syncBlock,/findEdcPlayer\(/,'generic player sync must not pe
 assert.match(syncBlock,/manualOnly:true/,'generic player sync must explicitly report external manual-only sources');
 assert.match(ratings,/e\.confirmed===true\?asNumber\(e\.ppd\):null/,'unconfirmed EDC may not influence rating fallback');
 assert.match(ui,/Player Source Linking/);assert.match(ui,/Public View/);assert.match(ui,/Robustness/);assert.match(ui,/EDC \/ EVP/);assert.match(ui,/RAW/);
-assert.match(html,/v094-player-intel\.js/);assert.match(html,/v094-player-intel\.css/);assert.match(String(pkg.version),/^0\.9\.(?:[4-9]|\d{2,})$/,'V0.9.4+ player-intelligence contract must remain active');
+assert.match(html,/v094-player-intel\.js/);assert.match(html,/v094-player-intel\.css/);
+const [major=0,minor=0,patch=0]=String(pkg.version).split('.').map(Number);
+assert.ok(major>0||minor>9||(minor===9&&patch>=4),'V0.9.4+ player-intelligence contract must remain active');
 console.log('V0.9.4+ player source-linking/privacy/robustness/background-sync checks passed');
