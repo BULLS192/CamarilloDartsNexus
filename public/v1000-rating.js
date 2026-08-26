@@ -1,26 +1,32 @@
 (()=>{
   const H={'content-type':'application/json'};
-  const EXPECTED=['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO','NEXUS RATING','ROBUSTNESS','ACTIONS'];
+  const EXPECTED=['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','NEXUS RATING','ROBUSTNESS','ACTIONS'];
   const state={data:null,players:[],loading:false,observer:null,timer:null,retryTimer:null,retryCount:0};
   const upper=s=>String(s||'').trim().toUpperCase();
   const norm=s=>String(s||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
+  const rowName=row=>{const cell=row?.cells?.[0];if(!cell)return'';const primary=cell.querySelector?.('[data-player-name],.player-name,strong,b');let text=String(primary?.textContent||cell.textContent||'').trim();text=text.replace(/\s*(?:male|female)\s*$/i,'').trim();return text};
   const api=async url=>{const r=await fetch(url,{headers:H,cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||`Request failed (${r.status})`);return d};
   const table=()=>document.querySelector('#playerRows')?.closest('table')||[...document.querySelectorAll('#players table')].find(t=>[...t.querySelectorAll('thead th')].some(h=>upper(h.textContent)==='BULLSHOOTER'))||null;
   const headerIndex=(t,...names)=>{const wanted=names.map(upper);return[...t.querySelectorAll('thead th')].findIndex(h=>wanted.includes(upper(h.textContent)))};
   const actionCell=row=>[...row.cells].find(c=>[...c.querySelectorAll('button')].some(b=>/^(edit|sync)$/i.test(b.textContent.trim())))||null;
   const fmt=(v,d=1)=>v===null||v===undefined||v===''?'—':(Number.isFinite(Number(v))?Number(v).toFixed(d):'—');
-  const pairMarkup=(ppd,mpr,label)=>`${fmt(ppd,2)} / ${fmt(mpr,2)}<span class="sub">${label}</span>`;
+  const combined=(ppd,mpr)=>ppd===null||ppd===undefined||mpr===null||mpr===undefined||!Number.isFinite(Number(ppd))||!Number.isFinite(Number(mpr))?null:Number(ppd)+10*Number(mpr);
+  const windowMarkup=(ppd,mpr,label)=>{
+    const rating=combined(ppd,mpr);
+    if(rating===null)return`<div class="skill-rating-block missing" title="${label}: incomplete PPD/MPR"><strong>—</strong><small>${fmt(ppd,2)} PPD · ${fmt(mpr,2)} MPR</small></div>`;
+    return`<div class="skill-rating-block" title="${label}: Rating ${fmt(rating,1)} = ${fmt(ppd,2)} PPD + 10 × ${fmt(mpr,2)} MPR"><strong>${fmt(rating,1)}</strong><small>${fmt(ppd,2)} PPD · ${fmt(mpr,2)} MPR</small></div>`;
+  };
   const sourceLine=(entry,key,label)=>{
-    const w=Number(entry?.sourceWeights?.[key]||0),b=Number(entry?.sourceBaseWeights?.[key]||0),r=entry?.sourceRatings?.[key],a=Number(entry?.agreementFactors?.[key]||1),o=Number(entry?.outlierFactors?.[key]||1),i=Number(entry?.independenceFactors?.[key]||1);
-    if(!(w>0)||!Number.isFinite(Number(r)))return null;
-    const factors=[];if(Math.abs(a-1)>.001)factors.push(`agree×${a.toFixed(2)}`);if(Math.abs(o-1)>.001)factors.push(`outlier×${o.toFixed(2)}`);if(Math.abs(i-1)>.001)factors.push(`independent×${i.toFixed(2)}`);
-    return`${label} ${Number(r).toFixed(1)} @ ${w.toFixed(1)}w${b>0&&Math.abs(b-w)>.01?` (base ${b.toFixed(1)}${factors.length?', '+factors.join(', '):''})`:factors.length?` (${factors.join(', ')})`:''}`;
+    const r=entry?.sourceRatings?.[key],w=Number(entry?.sourceWeights?.[key]||0),rel=Number(entry?.sourceReliability?.[key]||0),i=Number(entry?.independenceFactors?.[key]||1),o=Number(entry?.outlierFactors?.[key]||1);
+    if(key==='camarillo'&&!(entry?.flags?.cd))return'CD 0.0 @ 0w (no Camarillo games)';
+    if(r===null||r===undefined||!Number.isFinite(Number(r))||!(w>0))return null;
+    const extras=[];if(rel>0)extras.push(`reliability ${rel.toFixed(2)}`);if(Math.abs(i-1)>.001)extras.push(`independent×${i.toFixed(2)}`);if(Math.abs(o-1)>.001)extras.push(`outlier×${o.toFixed(2)}`);
+    return`${label} ${Number(r).toFixed(1)} @ ${w.toFixed(1)}w${extras.length?` (${extras.join(', ')})`:''}`;
   };
   const ratingMarkup=entry=>{
-    if(!entry||!Number.isFinite(Number(entry.rating)))return'<div class="nexus-rating-block missing"><div class="nx-main"><span>NX</span><strong>—</strong></div></div>';
+    if(!entry||!Number.isFinite(Number(entry.rating)))return'<div class="nexus-rating-block missing"><div class="nx-main"><span>NX</span><strong>—</strong></div><small>Insufficient complete rating data</small></div>';
     const lines=[sourceLine(entry,'bullshooter','BS'),sourceLine(entry,'edc','EDC'),sourceLine(entry,'toc','TOC'),sourceLine(entry,'camarillo','CD')].filter(Boolean);
-    const consensus=Number(entry.sourceCount||0)>1?` · ${entry.sourceCount} sources${Number.isFinite(Number(entry.consensusMedian))?` · median ${fmt(entry.consensusMedian,1)}`:''}`:'';
-    const title=`Nexus Rating ${fmt(entry.rating,1)}/150 · ${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR${consensus}${lines.length?' · '+lines.join(' · '):''}`;
+    const title=`Nexus ${fmt(entry.rating,1)} · ${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR · ${entry.sourceCount||0} active source${Number(entry.sourceCount||0)===1?'':'s'}${lines.length?' · '+lines.join(' · '):''}`;
     return`<div class="nexus-rating-block" title="${title}"><div class="nx-main"><span>NX</span><strong>${fmt(entry.rating,1)}</strong></div><small>${fmt(entry.nexusPPD,2)} PPD · ${fmt(entry.nexusMPR,2)} MPR</small></div>`;
   };
   const robustnessMarkup=r=>{
@@ -43,21 +49,21 @@
     if(correct){syncHidden(t);return true}
 
     const hidden=new Map();oldHeads.forEach((h,i)=>hidden.set(oldLabels[i],h.classList.contains('v094-col-hidden')));
-    const display={PLAYER:'Player',CONTACT:'Contact',HOME:'Home',BULLSHOOTER:'BullShooter','BS CURRENT':'BS Current',BS50:'BS50',BS20:'BS20',BS10:'BS10',CAMARILLO:'Camarillo','NEXUS RATING':'Nexus Rating',ROBUSTNESS:'Robustness',ACTIONS:'Actions'};
-    const newHeads=EXPECTED.map(label=>{const th=document.createElement('th');th.textContent=display[label]||label;if(hidden.get(label)||(label==='BS50'&&hidden.get('BS30'))||(label==='NEXUS RATING'&&(hidden.get('RATING')||hidden.get('BS / CD RATING'))))th.classList.add('v094-col-hidden');return th});
+    const display={PLAYER:'Player',CONTACT:'Contact',HOME:'Home',BULLSHOOTER:'BullShooter','BS CURRENT':'BS Current',BS50:'BS50',BS20:'BS20',BS10:'BS10','NEXUS RATING':'Nexus Rating',ROBUSTNESS:'Robustness',ACTIONS:'Actions'};
+    const newHeads=EXPECTED.map(label=>{const th=document.createElement('th');th.textContent=display[label]||label;if(hidden.get(label)||(label==='BS50'&&hidden.get('BS30'))||(label==='NEXUS RATING'&&(hidden.get('CAMARILLO')||hidden.get('RATING')||hidden.get('BS / CD RATING'))))th.classList.add('v094-col-hidden');return th});
 
     for(const row of rows){
       const oldCells=[...row.cells],map=new Map();oldLabels.forEach((label,i)=>{if(oldCells[i]&&!map.has(label))map.set(label,oldCells[i])});
       const act=actionCell(row)||map.get('ACTIONS')||document.createElement('td');
       const used=new Set([act]);
       const take=(...labels)=>{for(const label of labels){const c=map.get(label);if(c&&c!==act&&!used.has(c)){used.add(c);return c}}return null};
-      const rating=take('NEXUS RATING','BS / CD RATING','RATING');
+      const rating=take('NEXUS RATING','CAMARILLO','BS / CD RATING','RATING');
       const robust=[...oldCells].find(c=>c!==act&&(c.querySelector?.('.robustness-badge')||c.dataset?.v0918==='robustness'||c.dataset?.v0917==='robustness'||c.dataset?.v0916==='robustness'||c.dataset?.v0915==='robustness'||c.dataset?.v094==='robustness'))||take('ROBUSTNESS');if(robust)used.add(robust);
       const ordered=[
-        take('PLAYER'),take('CONTACT'),take('HOME'),take('BULLSHOOTER'),take('BS CURRENT'),take('BS50','BS30'),take('BS20'),take('BS10'),take('CAMARILLO'),rating,robust,act
+        take('PLAYER'),take('CONTACT'),take('HOME'),take('BULLSHOOTER'),take('BS CURRENT'),take('BS50','BS30'),take('BS20'),take('BS10'),rating,robust,act
       ].map(c=>c||document.createElement('td'));
-      ordered[4].dataset.v1004='bs-current';ordered[5].dataset.v1004='bs50';ordered[6].dataset.v1004='bs20';ordered[7].dataset.v1004='bs10';
-      ordered[9].dataset.v1004='nexus-rating';ordered[10].dataset.v1004='robustness';
+      ordered[4].dataset.v1100='bs-current';ordered[5].dataset.v1100='bs50';ordered[6].dataset.v1100='bs20';ordered[7].dataset.v1100='bs10';
+      ordered[8].dataset.v1100='nexus-rating';ordered[9].dataset.v1100='robustness';
       row.replaceChildren(...ordered);
       row.dataset.v077='1';
     }
@@ -84,28 +90,28 @@
     return{byId,byBs,byName};
   };
   const rowIdentity=(row,bsIdx,pidx)=>{
-    const bsCell=row.cells[bsIdx],id=String(bsCell?.textContent||'').match(/#\s*(\d{3,})\b/)?.[1]||'';
+    const bsCell=row.cells[bsIdx],id=String(bsCell?.textContent||'').match(/#\s*(\d{3,})/)?.[1]||'';
     const pid=String(row.dataset.nexusPlayerId||row.dataset.playerId||'');
     let player=id?pidx.byBs.get(id):null;
     if(!player&&pid)player=pidx.byId.get(pid)||null;
-    if(!player){const key=norm(row.cells[0]?.textContent||'');player=key?pidx.byName.get(key)||null:null}
+    if(!player){const key=norm(rowName(row));player=key?pidx.byName.get(key)||null:null}
     if(player&&player.id)row.dataset.nexusPlayerId=String(player.id);
     const resolvedBs=id||String(player?.bullshooter?.id||'').trim();
-    return{id:resolvedBs,pid:String(player?.id||pid||''),player};
+    return{id:resolvedBs,pid:String(player?.id||pid||''),nameKey:norm(rowName(row)),player};
   };
   function entryForRow(identity,names){
     const {id,pid}=identity;
     if(id&&state.data?.byBullshooterId?.[id])return state.data.byBullshooterId[id];
     if(pid&&state.data?.byPlayerId?.[pid])return state.data.byPlayerId[pid];
-    const key=norm(identity.player?.name||'');return key?names.get(key)||null:null;
+    const key=identity.nameKey||norm(identity.player?.name||'');return key?names.get(key)||null:null;
   }
   function renderBullshooter(row,idx,player){
     if(!player)return;
     const b=player?.bullshooter||{};
     if(idx.current>=0&&row.cells[idx.current])row.cells[idx.current].textContent=`${fmt(b.ppd,2)} / ${fmt(b.mpr,2)}`;
-    if(idx.bs50>=0&&row.cells[idx.bs50])row.cells[idx.bs50].innerHTML=pairMarkup(b.last50PPD,b.last50MPR,'BullShooter Last 50');
-    if(idx.bs20>=0&&row.cells[idx.bs20])row.cells[idx.bs20].innerHTML=pairMarkup(b.last20PPD,b.last20MPR,'BullShooter Last 20');
-    if(idx.bs10>=0&&row.cells[idx.bs10])row.cells[idx.bs10].innerHTML=pairMarkup(b.last10PPD,b.last10MPR,'BullShooter Last 10');
+    if(idx.bs50>=0&&row.cells[idx.bs50])row.cells[idx.bs50].innerHTML=windowMarkup(b.last50PPD,b.last50MPR,'BullShooter Last 50');
+    if(idx.bs20>=0&&row.cells[idx.bs20])row.cells[idx.bs20].innerHTML=windowMarkup(b.last20PPD,b.last20MPR,'BullShooter Last 20');
+    if(idx.bs10>=0&&row.cells[idx.bs10])row.cells[idx.bs10].innerHTML=windowMarkup(b.last10PPD,b.last10MPR,'BullShooter Last 10');
   }
 
   function render(){
@@ -124,10 +130,10 @@
       const ratingCell=row.cells[idx.rating],robustCell=row.cells[idx.robust];if(!ratingCell||!robustCell)continue;
       const entry=entryForRow(identity,names),id=identity.id;
       const ratingSig=entry?`${id}|${entry.playerId||''}|${entry.rating}|${entry.nexusPPD}|${entry.nexusMPR}|${JSON.stringify(entry.sourceWeights||{})}`:`missing|${id}|${identity.pid}`;
-      if(ratingCell.dataset.v1004RatingSig!==ratingSig||!ratingCell.querySelector('.nexus-rating-block')){ratingCell.innerHTML=ratingMarkup(entry);ratingCell.dataset.v1004RatingSig=ratingSig}
+      if(ratingCell.dataset.v1100RatingSig!==ratingSig||!ratingCell.querySelector('.nexus-rating-block')){ratingCell.innerHTML=ratingMarkup(entry);ratingCell.dataset.v1100RatingSig=ratingSig}
       const r=entry?.robustness||null;
       const robustSig=r?`${id}|${r.playerId||''}|${r.score}|${r.label}|${JSON.stringify(r.components||{})}`:`missing|${id}|${identity.pid}`;
-      if(robustCell.dataset.v1004RobustSig!==robustSig||!robustCell.querySelector('.robustness-badge')){robustCell.innerHTML=robustnessMarkup(r);robustCell.dataset.v1004RobustSig=robustSig}
+      if(robustCell.dataset.v1100RobustSig!==robustSig||!robustCell.querySelector('.robustness-badge')){robustCell.innerHTML=robustnessMarkup(r);robustCell.dataset.v1100RobustSig=robustSig}
       if(entry&&Number.isFinite(Number(entry.rating)))row.dataset.nexusRating=String(entry.rating);else delete row.dataset.nexusRating;
       if(r&&Number.isFinite(Number(r.score))){
         row.dataset.robustness=String(r.score);row.dataset.sources=String(r.sources??0);
@@ -155,11 +161,11 @@
     if(state.loading)return;state.loading=true;
     try{
       const [playersResult,metricsResult]=await Promise.allSettled([api('/api/players'),api('/api/players/nexus-rating')]);
-      if(playersResult.status==='fulfilled')state.players=Array.isArray(playersResult.value)?playersResult.value:[];else console.warn('V0.10.4 Players read:',playersResult.reason);
+      if(playersResult.status==='fulfilled')state.players=Array.isArray(playersResult.value)?playersResult.value:[];else console.warn('V0.11.0 Players read:',playersResult.reason);
       if(metricsResult.status==='fulfilled'){
         state.data=metricsResult.value;state.retryCount=0;clearTimeout(state.retryTimer);
       }else{
-        console.warn('V0.10.4 Player Metrics read:',metricsResult.reason);scheduleRetry();
+        console.warn('V0.11.0 Player Metrics read:',metricsResult.reason);scheduleRetry();
       }
       render();
     }finally{state.loading=false}
