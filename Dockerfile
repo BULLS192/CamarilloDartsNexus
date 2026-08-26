@@ -155,6 +155,12 @@ COPY tests/robustness-edc-v0916.test.js /app/tests/robustness-edc-v0916.test.js
 COPY deploy/patch-v0916-server-robustness-edc.mjs /tmp/patch-v0916-server-robustness-edc.mjs
 RUN node /tmp/patch-v0916-server-robustness-edc.mjs && rm /tmp/patch-v0916-server-robustness-edc.mjs
 
+# V0.9.17: semantic table-column contract; legacy scripts may not repaint cells by numeric index.
+COPY public/v0917-table.js /app/public/v0917-table.js
+COPY tests/table-contract-v0917.test.js /app/tests/table-contract-v0917.test.js
+COPY deploy/patch-v0917-table-contract.mjs /tmp/patch-v0917-table-contract.mjs
+RUN node /tmp/patch-v0917-table-contract.mjs && rm /tmp/patch-v0917-table-contract.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
