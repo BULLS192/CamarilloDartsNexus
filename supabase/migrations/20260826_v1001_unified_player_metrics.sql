@@ -30,7 +30,7 @@ begin
   from jsonb_each(coalesce(v_rating->'byPlayerId','{}'::jsonb)) r;
 
   return v_rating || jsonb_build_object(
-    'formulaVersion','1.0.1',
+    'metricsVersion','1.0.1',
     'metricsSource','camarillo_player_metrics_index',
     'robustnessFormulaVersion',v_robust->'formulaVersion',
     'robustnessGeneratedAt',v_robust->'generatedAt',
