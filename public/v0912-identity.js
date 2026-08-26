@@ -10,12 +10,12 @@
   function closePicker(){document.querySelector('#identityLinkOverlay')?.remove()}
   function syncSelectedPlayer(id){const sel=$('#tocNexusPlayer');if(sel&&[...sel.options].some(o=>String(o.value)===String(id))){sel.value=String(id);sel.dispatchEvent(new Event('change',{bubbles:true}))}document.dispatchEvent(new CustomEvent('camarillo:identity-linked',{detail:{playerId:String(id)}}))}
   async function saveAlias(player,externalName,kind,source){const name=String(externalName||'').trim();if(!name||norm(name)===norm(canonical(player)))return;await api(`/api/players/${encodeURIComponent(player.id)}/aliases`,{method:'POST',body:JSON.stringify({name,kind:kind||'external-name',source:source||'manual',verified:true})})}
-  async function doLink({source,tocId,sourceRow,externalName,playerId,aliasKind}){
+  async function doLink({source,tocId,sourceRow,externalName,playerId,aliasKind,rememberAlias=true}){
     const rows=await players(),p=rows.find(x=>String(x.id)===String(playerId));if(!p)throw Error('Select a Nexus player.');
     if(source==='toc')await api(`/api/players/${encodeURIComponent(p.id)}/toc/link`,{method:'POST',body:JSON.stringify({tocId,confirmed:true,matchMethod:'manual-raw',confidence:'confirmed'})});
     else if(source==='edc')await api(`/api/players/${encodeURIComponent(p.id)}/edc-link`,{method:'POST',body:JSON.stringify({sourceRow:Number(sourceRow)})});
     else throw Error('Unknown source.');
-    await saveAlias(p,externalName,aliasKind,source).catch(()=>{});
+    if(rememberAlias)await saveAlias(p,externalName,aliasKind,source).catch(()=>{});
     playerCache.at=0;syncSelectedPlayer(p.id);return p;
   }
   async function openPicker(record){
@@ -27,7 +27,7 @@
     function refreshAlias(){const p=rows.find(x=>String(x.id)===String(select.value));const same=p&&norm(record.externalName)===norm(canonical(p));aliasBox.style.display=same?'none':''}
     refreshAlias();select.addEventListener('change',refreshAlias);search.addEventListener('input',()=>{const q=norm(search.value);for(const o of [...select.options]){if(!o.value)continue;const p=rows.find(x=>String(x.id)===String(o.value)),aliases=(p?.identityAliases||[]).map(a=>a?.name||a).join(' '),hay=norm(`${o.textContent} ${p?.bullshooter?.id||p?.bullshooterId||''} ${aliases}`);o.hidden=Boolean(q&&!hay.includes(q))}});
     overlay.querySelector('[data-close]').addEventListener('click',closePicker);overlay.addEventListener('click',e=>{if(e.target===overlay)closePicker()});
-    $('#identityConfirmLink').addEventListener('click',async()=>{const status=$('#identityLinkStatus'),btn=$('#identityConfirmLink');if(!select.value){status.textContent='Select a Nexus player first.';status.className='error';return}btn.disabled=true;status.textContent='Linking…';status.className='';try{const p=await doLink({...record,playerId:select.value,aliasKind:$('#identityAliasKind').value});if(!$('#identitySaveAlias').checked){/* Source link remains; alias persistence is intentionally optional only before save. */}status.textContent=`Linked to ${p.name||canonical(p)}.`;status.className='ok';setTimeout(closePicker,650)}catch(e){status.textContent=e.message;status.className='error';btn.disabled=false}});
+    $('#identityConfirmLink').addEventListener('click',async()=>{const status=$('#identityLinkStatus'),btn=$('#identityConfirmLink');if(!select.value){status.textContent='Select a Nexus player first.';status.className='error';return}btn.disabled=true;status.textContent='Linking…';status.className='';try{const p=await doLink({...record,playerId:select.value,aliasKind:$('#identityAliasKind').value,rememberAlias:$('#identitySaveAlias').checked});status.textContent=`Linked to ${p.name||canonical(p)}.`;status.className='ok';setTimeout(closePicker,650)}catch(e){status.textContent=e.message;status.className='error';btn.disabled=false}});
   }
   function tocRecordFromButton(btn){const tr=btn.closest('tr');if(!tr)return null;const name=tr.querySelector('td b')?.textContent?.trim()||'',tocId=tr.dataset.toc||'',cells=[...tr.cells].map(c=>c.textContent.trim());return tocId?{source:'toc',tocId,externalName:name,detail:[cells[1],cells[2],cells[3],cells[4]].filter(Boolean).join(' · ')}:null}
   function augmentToc(){const host=$('#rawTocHost');if(!host)return;for(const b of host.querySelectorAll('.toc-use')){b.textContent='Link to Nexus';b.classList.add('identity-raw-link')}}
