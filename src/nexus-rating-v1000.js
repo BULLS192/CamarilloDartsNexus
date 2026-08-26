@@ -44,8 +44,8 @@ export function computeNexusRating(player,{toc=null,tocConfirmed=false}={}){
     bsMPR:bsMPR===null?0:gameWeight(cricket,50,20),
     edcPPD:edcConfirmed&&edcPPD!==null?(edcGames===null?5:gameWeight(edcGames,80,15)):0,
     edcMPR:edcConfirmed&&edcMPR!==null?(edcGames===null?5:gameWeight(edcGames,80,15)):0,
-    tocPPD:tocPPD===null?0:15,
-    tocMPR:tocMPR===null?0:15,
+    tocPPD:tocPPD===null?0:10,
+    tocMPR:tocMPR===null?0:10,
     cdPPD:cdPPD===null?0:gameWeight(cd01,30,10),
     cdMPR:cdMPR===null?0:gameWeight(cdCricket,30,10)
   };
@@ -68,6 +68,7 @@ export function computeNexusRating(player,{toc=null,tocConfirmed=false}={}){
     rating:combinedRating(nexusPPD,nexusMPR),
     ratingScaleMax:150,
     formula:'PPD + 10*MPR',
+    ratingWeights:{bullshooter:40,edc:30,toc:20,camarillo:20},
     nexusPPD:round(nexusPPD,2),nexusMPR:round(nexusMPR,2),
     evidenceWeight:round(Object.values(sourceWeights).reduce((a,v)=>a+v,0),1),
     sourceWeights:Object.fromEntries(Object.entries(sourceWeights).map(([k,v])=>[k,round(v,1)])),
