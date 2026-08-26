@@ -1,14 +1,15 @@
 (()=>{
   const H={'content-type':'application/json'};
   const EXPECTED=['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO','NEXUS RATING','ROBUSTNESS','ACTIONS'];
-  const state={data:null,loading:false,observer:null,timer:null};
+  const state={data:null,players:[],loading:false,observer:null,timer:null,retryTimer:null,retryCount:0};
   const upper=s=>String(s||'').trim().toUpperCase();
   const norm=s=>String(s||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
-  const api=async url=>{const r=await fetch(url,{headers:H});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||`Request failed (${r.status})`);return d};
+  const api=async url=>{const r=await fetch(url,{headers:H,cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||`Request failed (${r.status})`);return d};
   const table=()=>document.querySelector('#playerRows')?.closest('table')||[...document.querySelectorAll('#players table')].find(t=>[...t.querySelectorAll('thead th')].some(h=>upper(h.textContent)==='BULLSHOOTER'))||null;
   const headerIndex=(t,...names)=>{const wanted=names.map(upper);return[...t.querySelectorAll('thead th')].findIndex(h=>wanted.includes(upper(h.textContent)))};
   const actionCell=row=>[...row.cells].find(c=>[...c.querySelectorAll('button')].some(b=>/^(edit|sync)$/i.test(b.textContent.trim())))||null;
   const fmt=(v,d=1)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
+  const pairMarkup=(ppd,mpr,label)=>`${fmt(ppd,2)} / ${fmt(mpr,2)}<span class="sub">${label}</span>`;
   const sourceLine=(entry,key,label)=>{
     const w=Number(entry?.sourceWeights?.[key]||0),b=Number(entry?.sourceBaseWeights?.[key]||0),r=entry?.sourceRatings?.[key],a=Number(entry?.agreementFactors?.[key]||1),o=Number(entry?.outlierFactors?.[key]||1),i=Number(entry?.independenceFactors?.[key]||1);
     if(!(w>0)||!Number.isFinite(Number(r)))return null;
@@ -55,8 +56,8 @@
       const ordered=[
         take('PLAYER'),take('CONTACT'),take('HOME'),take('BULLSHOOTER'),take('BS CURRENT'),take('BS50','BS30'),take('BS20'),take('BS10'),take('CAMARILLO'),rating,robust,act
       ].map(c=>c||document.createElement('td'));
-      ordered[9].dataset.v1003='nexus-rating';
-      ordered[10].dataset.v1003='robustness';
+      ordered[4].dataset.v1004='bs-current';ordered[5].dataset.v1004='bs50';ordered[6].dataset.v1004='bs20';ordered[7].dataset.v1004='bs10';
+      ordered[9].dataset.v1004='nexus-rating';ordered[10].dataset.v1004='robustness';
       row.replaceChildren(...ordered);
       row.dataset.v077='1';
     }
@@ -65,7 +66,7 @@
     return true;
   }
 
-  const nameIndex=()=>{
+  const ratingNameIndex=()=>{
     const out=new Map();
     for(const entry of Object.values(state.data?.byPlayerId||{})){
       const k=norm(entry?.name);if(!k)continue;
@@ -73,32 +74,60 @@
     }
     return out;
   };
-  function entryForRow(row,bsIdx,names){
+  const playerIndexes=()=>{
+    const byId=new Map(),byBs=new Map(),byName=new Map();
+    for(const p of state.players||[]){
+      const pid=String(p?.id||p?.playerId||'');if(pid)byId.set(pid,p);
+      const bs=String(p?.bullshooter?.id||p?.bullshooterId||'').trim();if(bs){if(byBs.has(bs))byBs.set(bs,null);else byBs.set(bs,p)}
+      const k=norm(p?.name||[p?.firstName,p?.lastName].filter(Boolean).join(' '));if(k){if(byName.has(k))byName.set(k,null);else byName.set(k,p)}
+    }
+    return{byId,byBs,byName};
+  };
+  const rowIdentity=(row,bsIdx,pidx)=>{
     const bsCell=row.cells[bsIdx],id=String(bsCell?.textContent||'').match(/#\s*(\d{3,})\b/)?.[1]||'';
-    if(id&&state.data?.byBullshooterId?.[id])return{id,entry:state.data.byBullshooterId[id]};
-    const pid=String(row.dataset.nexusPlayerId||'');
-    if(pid&&state.data?.byPlayerId?.[pid])return{id,pid,entry:state.data.byPlayerId[pid]};
-    const key=norm(row.cells[0]?.textContent||'');const byName=key?names.get(key):null;
-    return{id,pid,entry:byName||null};
+    const pid=String(row.dataset.nexusPlayerId||row.dataset.playerId||'');
+    let player=id?pidx.byBs.get(id):null;
+    if(!player&&pid)player=pidx.byId.get(pid)||null;
+    if(!player){const key=norm(row.cells[0]?.textContent||'');player=key?pidx.byName.get(key)||null:null}
+    if(player&&player.id)row.dataset.nexusPlayerId=String(player.id);
+    const resolvedBs=id||String(player?.bullshooter?.id||'').trim();
+    return{id:resolvedBs,pid:String(player?.id||pid||''),player};
+  };
+  function entryForRow(identity,names){
+    const {id,pid}=identity;
+    if(id&&state.data?.byBullshooterId?.[id])return state.data.byBullshooterId[id];
+    if(pid&&state.data?.byPlayerId?.[pid])return state.data.byPlayerId[pid];
+    const key=norm(identity.player?.name||'');return key?names.get(key)||null:null;
+  }
+  function renderBullshooter(row,idx,player){
+    if(!player)return;
+    const b=player?.bullshooter||{};
+    if(idx.current>=0&&row.cells[idx.current])row.cells[idx.current].textContent=`${fmt(b.ppd,2)} / ${fmt(b.mpr,2)}`;
+    if(idx.bs50>=0&&row.cells[idx.bs50])row.cells[idx.bs50].innerHTML=pairMarkup(b.last50PPD,b.last50MPR,'BullShooter Last 50');
+    if(idx.bs20>=0&&row.cells[idx.bs20])row.cells[idx.bs20].innerHTML=pairMarkup(b.last20PPD,b.last20MPR,'BullShooter Last 20');
+    if(idx.bs10>=0&&row.cells[idx.bs10])row.cells[idx.bs10].innerHTML=pairMarkup(b.last10PPD,b.last10MPR,'BullShooter Last 10');
   }
 
   function render(){
     const t=table();if(!t)return;
     canonicalize(t);
-    const ratingIdx=headerIndex(t,'NEXUS RATING');
-    const robustIdx=headerIndex(t,'ROBUSTNESS');
-    const bsIdx=headerIndex(t,'BULLSHOOTER');
-    if(ratingIdx<0||robustIdx<0||bsIdx<0)return;
-    const names=nameIndex();
+    const idx={
+      current:headerIndex(t,'BS CURRENT'),bs50:headerIndex(t,'BS50'),bs20:headerIndex(t,'BS20'),bs10:headerIndex(t,'BS10'),
+      rating:headerIndex(t,'NEXUS RATING'),robust:headerIndex(t,'ROBUSTNESS'),bs:headerIndex(t,'BULLSHOOTER')
+    };
+    if(idx.rating<0||idx.robust<0||idx.bs<0)return;
+    const names=ratingNameIndex(),pidx=playerIndexes();
     for(const row of t.querySelectorAll('tbody tr')){
       if(row.cells.length!==EXPECTED.length)continue;
-      const ratingCell=row.cells[ratingIdx],robustCell=row.cells[robustIdx];if(!ratingCell||!robustCell)continue;
-      const {id,entry}=entryForRow(row,bsIdx,names);
-      const ratingSig=entry?`${id}|${entry.playerId||''}|${entry.rating}|${entry.nexusPPD}|${entry.nexusMPR}|${JSON.stringify(entry.sourceWeights||{})}`:`missing|${id}`;
-      if(ratingCell.dataset.v1001RatingSig!==ratingSig||!ratingCell.querySelector('.nexus-rating-block')){ratingCell.innerHTML=ratingMarkup(entry);ratingCell.dataset.v1001RatingSig=ratingSig}
+      const identity=rowIdentity(row,idx.bs,pidx);
+      renderBullshooter(row,idx,identity.player);
+      const ratingCell=row.cells[idx.rating],robustCell=row.cells[idx.robust];if(!ratingCell||!robustCell)continue;
+      const entry=entryForRow(identity,names),id=identity.id;
+      const ratingSig=entry?`${id}|${entry.playerId||''}|${entry.rating}|${entry.nexusPPD}|${entry.nexusMPR}|${JSON.stringify(entry.sourceWeights||{})}`:`missing|${id}|${identity.pid}`;
+      if(ratingCell.dataset.v1004RatingSig!==ratingSig||!ratingCell.querySelector('.nexus-rating-block')){ratingCell.innerHTML=ratingMarkup(entry);ratingCell.dataset.v1004RatingSig=ratingSig}
       const r=entry?.robustness||null;
-      const robustSig=r?`${id}|${r.playerId||''}|${r.score}|${r.label}|${JSON.stringify(r.components||{})}`:`missing|${id}|${entry?.playerId||''}`;
-      if(robustCell.dataset.v1001RobustSig!==robustSig||!robustCell.querySelector('.robustness-badge')){robustCell.innerHTML=robustnessMarkup(r);robustCell.dataset.v1001RobustSig=robustSig}
+      const robustSig=r?`${id}|${r.playerId||''}|${r.score}|${r.label}|${JSON.stringify(r.components||{})}`:`missing|${id}|${identity.pid}`;
+      if(robustCell.dataset.v1004RobustSig!==robustSig||!robustCell.querySelector('.robustness-badge')){robustCell.innerHTML=robustnessMarkup(r);robustCell.dataset.v1004RobustSig=robustSig}
       if(entry&&Number.isFinite(Number(entry.rating)))row.dataset.nexusRating=String(entry.rating);else delete row.dataset.nexusRating;
       if(r&&Number.isFinite(Number(r.score))){
         row.dataset.robustness=String(r.score);row.dataset.sources=String(r.sources??0);
@@ -117,11 +146,23 @@
     state.observer.observe(body,{childList:true});
     state.observer.observe(head,{childList:true});
   }
+  function scheduleRetry(){
+    clearTimeout(state.retryTimer);if(state.retryCount>=4)return;
+    const delays=[1000,2500,5000,10000],delay=delays[state.retryCount++]||10000;
+    state.retryTimer=setTimeout(()=>void load(),delay);
+  }
   async function load(){
     if(state.loading)return;state.loading=true;
-    try{state.data=await api('/api/players/nexus-rating');render()}
-    catch(e){console.warn('V0.10.3 Player Metrics:',e)}
-    finally{state.loading=false}
+    try{
+      const [playersResult,metricsResult]=await Promise.allSettled([api('/api/players'),api('/api/players/nexus-rating')]);
+      if(playersResult.status==='fulfilled')state.players=Array.isArray(playersResult.value)?playersResult.value:[];else console.warn('V0.10.4 Players read:',playersResult.reason);
+      if(metricsResult.status==='fulfilled'){
+        state.data=metricsResult.value;state.retryCount=0;clearTimeout(state.retryTimer);
+      }else{
+        console.warn('V0.10.4 Player Metrics read:',metricsResult.reason);scheduleRetry();
+      }
+      render();
+    }finally{state.loading=false}
   }
   function boot(){
     render();void load();
@@ -130,7 +171,7 @@
     document.addEventListener('camarillo:source-unlinked',()=>void load());
     document.addEventListener('click',e=>{const b=e.target?.closest?.('button');if(b&&/^sync$/i.test(b.textContent.trim()))setTimeout(()=>void load(),2500)});
   }
-  window.CDNexusRatingV1000={reload:load,refresh:render,get data(){return state.data}};
+  window.CDNexusRatingV1000={reload:load,refresh:render,get data(){return state.data},get players(){return state.players}};
   window.CDNexusPlayerMetricsV1001=window.CDNexusRatingV1000;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
