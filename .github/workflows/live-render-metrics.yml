@@ -1,0 +1,35 @@
+name: Live Render Metrics Diagnostic
+on:
+  push:
+    branches: [diagnostic/live-render-metrics]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe live Render APIs
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base='https://camarillo-darts.onrender.com';
+          const get=async path=>{
+            const r=await fetch(base+path,{headers:{'accept':'application/json'},cache:'no-store'});
+            const text=await r.text();
+            console.log(`STATUS ${path}: ${r.status}`);
+            if(!r.ok){console.log(text.slice(0,1200));return null;}
+            try{return JSON.parse(text)}catch{console.log(text.slice(0,1200));return null;}
+          };
+          const players=await get('/api/players');
+          const metrics=await get('/api/players/nexus-rating');
+          console.log('PLAYERS',Array.isArray(players)?players.length:'not-array');
+          if(Array.isArray(players)){
+            for(const name of ['Taylor "KAPPSIZED" Kapp','Gregorio "DJINN" Garcia','Adam "TURK" Deyloff','Justin "INKK" Inkk','Brad Lewandowski']){
+              const p=players.find(x=>String(x?.name||'').toLowerCase()===name.toLowerCase());
+              console.log('PLAYER',name,p?JSON.stringify({id:p.id,bs:p?.bullshooter?.id,ppd:p?.bullshooter?.ppd,mpr:p?.bullshooter?.mpr,last50PPD:p?.bullshooter?.last50PPD,last50MPR:p?.bullshooter?.last50MPR,last20PPD:p?.bullshooter?.last20PPD,last20MPR:p?.bullshooter?.last20MPR,last10PPD:p?.bullshooter?.last10PPD,last10MPR:p?.bullshooter?.last10MPR,x01:p?.bullshooter?.currentStatsDiagnostics?.x01Count,cricket:p?.bullshooter?.currentStatsDiagnostics?.cricketCount}):'MISSING');
+            }
+          }
+          if(metrics){
+            console.log('METRICS_META',JSON.stringify({count:metrics.count,metricsVersion:metrics.metricsVersion,source:metrics.metricsSource,byBs:Object.keys(metrics.byBullshooterId||{}).length,byPlayer:Object.keys(metrics.byPlayerId||{}).length}));
+            for(const id of ['267261','238873','181688','62894','51787']) console.log('METRIC',id,JSON.stringify(metrics.byBullshooterId?.[id]||null));
+          }
+          NODE
