@@ -3,8 +3,7 @@ name: Multi-source Integration CI
 on:
   push:
     branches:
-      - v0.9-edc-integration
-      - v0.9-stats-sources-ui
+      - 'v0.9.*'
   pull_request:
     paths:
       - 'src/edc.js'
