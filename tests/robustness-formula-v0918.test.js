@@ -19,14 +19,18 @@ const over={...full,bullshooter:{id:'123456',currentStatsDiagnostics:{x01Count:5
 assert.equal(bullshooter501Games({currentStatsDiagnostics:{x01Count:41},last50PPDSampleSize:50}),50,'known 501 sample evidence should use the strongest known count');
 assert.equal(bullshooterCricketGames({currentStatsDiagnostics:{cricketCount:49},last50MPRSampleSize:50}),50,'known Cricket sample evidence should use the strongest known count');
 const idx=robustnessIndex([full],{links:[{playerId:'p1',confirmed:true}]});assert.equal(idx.byBullshooterId['123456'].score,100);assert.equal(idx.formulaVersion,'0.9.18');
+const kevin={id:'recovered-192985',bullshooter:{id:'192985',currentStatsDiagnostics:{x01Count:41,cricketCount:69},last50PPDSampleSize:41,last50MPRSampleSize:50}};
+const kr=scorePlayerRobustness(kevin);assert.equal(kr.score,36,'Kevin production evidence must score R36 before external-link points');
 
-const ui=read('public/v0918-table.js'),server=read('server.js'),html=read('public/index.html'),pkg=JSON.parse(read('package.json'));
+const ui=read('public/v0918-table.js'),server=read('server.js'),store=read('src/store.js'),html=read('public/index.html'),pkg=JSON.parse(read('package.json'));
 assert.match(ui,/const EXPECTED=\['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO','BS \/ CD RATING','ROBUSTNESS','ACTIONS'\]/,'Players table must have one canonical schema');
 assert.match(ui,/row\.replaceChildren\(\.\.\.ordered\)/,'each player row must be normalized to the canonical schema');
 assert.match(ui,/EDC \$\{c\.edc\?\?0\}\/30/,'robustness tooltip must expose the fixed EDC component');
 assert.match(ui,/BullShooter 501 \$\{c\.bullshooter501\?\?0\}\/20/);
 assert.match(ui,/BullShooter Cricket \$\{c\.bullshooterCricket\?\?0\}\/20/);
+assert.match(store,/export async function listRobustnessPlayers\(\)\{[\s\S]*?const db=await readDb\(\);[\s\S]*?db\.players/,'robustness must read full persisted player state');
+assert.match(server,/const players=await listRobustnessPlayers\(\),links=await listTocLinks/,'robustness endpoint must use full stored records, not the generic player list');
 assert.match(server,/robustnessIndex\(players,\{links\}\)/,'robustness endpoint should not fetch TOC detail rows merely to calculate robustness');
-assert.match(html,/v0918-table\.js/);assert.doesNotMatch(html,/v0917-table\.js/,'V0.9.17 table renderer must not compete with V0.9.18');
-assert.equal(pkg.version,'0.9.18');
-console.log('V0.9.18 fixed robustness formula and canonical Players table checks passed');
+assert.match(html,/v0918-table\.js/);assert.doesNotMatch(html,/v0917-table\.js/,'V0.9.17 table renderer must not compete with V0.9.18+');
+assert.equal(pkg.version,'0.9.19');
+console.log('V0.9.19 fixed robustness formula + full-state backend checks passed');
