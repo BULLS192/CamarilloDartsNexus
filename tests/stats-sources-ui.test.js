@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
+// Shared integration-contract smoke test; V0.9.18 keeps this source-comparison surface unchanged.
 const js=fs.readFileSync(new URL('../public/v092-stats.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../public/v092-stats.css',import.meta.url),'utf8');
 
