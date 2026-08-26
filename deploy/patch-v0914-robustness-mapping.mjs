@@ -6,7 +6,7 @@ const indexPath=fs.existsSync('/app/public/index.html')?'/app/public/index.html'
 const pkgPath=fs.existsSync('/app/package.json')?'/app/package.json':'package.json';
 
 let ui=fs.readFileSync(uiPath,'utf8');
-const rowRe=/  function playerForRow\(row\)\{[\s\S]*?\n  \}\n  function ensureRobustnessColumn/;
+const rowRe=/  function playerForRow\(row\)\{[^\n]*\}/;
 if(!rowRe.test(ui))throw new Error('V0.9.14 patch: playerForRow block not found');
 ui=ui.replace(rowRe,`  function bullshooterIdForRow(row){
     if(!row)return'';
@@ -21,8 +21,7 @@ ui=ui.replace(rowRe,`  function bullshooterIdForRow(row){
     const raw=row?.cells?.[0]?.textContent||'',first=norm(raw),base=norm(String(raw).replace(/[\\\"“][^\\\"”]+[\\\"”]/g,' '));let p=first?playerByName.get(first)||null:null;if(!p&&base)p=playerByName.get(base)||null;
     if(!p){for(const key of [first,base].filter(Boolean)){for(const [name,candidate] of playerByName){if(key===name||key.startsWith(name+' ')||name.startsWith(key+' ')){p=candidate;break}}if(p)break}}
     if(p)row.dataset.nexusPlayerId=String(p.id);return p||null;
-  }
-  function ensureRobustnessColumn`);
+  }`);
 ui=ui.replaceAll('EXTERNAL PLAYER INTELLIGENCE · V0.9.13','EXTERNAL PLAYER INTELLIGENCE · V0.9.14');
 fs.writeFileSync(uiPath,ui);
 
