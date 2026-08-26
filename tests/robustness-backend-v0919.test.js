@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {scorePlayerRobustness} from '../src/robustness.js';
+const root=fs.existsSync('/app/server.js')?'/app':process.cwd();
+const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
+const store=read('src/store.js'),server=read('server.js'),pkg=JSON.parse(read('package.json'));
+assert.match(store,/export async function listRobustnessPlayers\(\)\{[\s\S]*?const db=await readDb\(\);[\s\S]*?db\.players/,'robustness must read full stored player records');
+assert.match(server,/const players=await listRobustnessPlayers\(\),links=await listTocLinks/,'robustness endpoint must use full stored records, not the generic player-list surface');
+const kevin={bullshooter:{id:'192985',currentStatsDiagnostics:{x01Count:41,cricketCount:69}}};
+const r=scorePlayerRobustness(kevin);
+assert.equal(r.components.bullshooter501,16.4);
+assert.equal(r.components.bullshooterCricket,20);
+assert.equal(r.score,36,'Kevin production evidence should yield R36 before TOC/EDC points');
+assert.equal(pkg.version,'0.9.19');
+console.log('V0.9.19 full-state robustness backend checks passed');
