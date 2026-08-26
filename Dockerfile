@@ -120,6 +120,11 @@ COPY tests/state-read-v0910.test.js /app/tests/state-read-v0910.test.js
 COPY deploy/patch-v0910-state-read-stability.mjs /tmp/patch-v0910-state-read-stability.mjs
 RUN node /tmp/patch-v0910-state-read-stability.mjs && rm /tmp/patch-v0910-state-read-stability.mjs
 
+# V0.9.11: progressive Stats Sources rendering and selected-player TOC intelligence deduplication.
+COPY tests/source-loading-v0911.test.js /app/tests/source-loading-v0911.test.js
+COPY deploy/patch-v0911-progressive-source-loading.mjs /tmp/patch-v0911-progressive-source-loading.mjs
+RUN node /tmp/patch-v0911-progressive-source-loading.mjs && rm /tmp/patch-v0911-progressive-source-loading.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
