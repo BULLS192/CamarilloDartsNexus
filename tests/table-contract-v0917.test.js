@@ -8,11 +8,17 @@ if(html.includes('/v1000-rating.js')){
   const unified=read('public/v1000-rating.js');
   assert.match(rating,/CDNexusPlayerMetricsV1001|CDNexusRatingV1000/,'legacy rating must delegate once unified metrics is active');
   assert.doesNotMatch(rating,/async function patchRatings\(\)\{[\s\S]{0,500}ratingMarkup\(/,'legacy rating may not repaint the unified Nexus Rating cell');
-  assert.match(unified,/headerIndex\(t,'NEXUS RATING','BS \/ CD RATING'\)/,'unified rating must resolve its target semantically');
+  if(/function canonicalize\(t\)/.test(unified)){
+    const canon=unified.indexOf('canonicalize(t);'),ratingIdx=unified.indexOf("headerIndex(t,'NEXUS RATING')");
+    assert.ok(canon>=0&&ratingIdx>canon,'V0.10.3+ must canonicalize the table before resolving Nexus Rating');
+    assert.match(unified,/take\('NEXUS RATING','BS \/ CD RATING','RATING'\)/,'canonicalizer must absorb legacy rating headers');
+  }else{
+    assert.match(unified,/headerIndex\(t,'NEXUS RATING','BS \/ CD RATING'\)/,'unified rating must resolve its target semantically');
+  }
   assert.match(unified,/headerIndex\(t,'ROBUSTNESS'\)/,'unified robustness must resolve its target semantically');
   assert.match(unified,/robustCell\.innerHTML=robustnessMarkup\(r\)/,'unified runtime must display Robustness in the dedicated cell');
   assert.match(unified,/ratingCell\.innerHTML=ratingMarkup\(entry\)/,'unified runtime must display Nexus Rating in the dedicated cell');
-  assert.doesNotMatch(html,/v0918-table\.js/,'V0.10.1 must not load a competing V0.9 robustness writer');
+  assert.doesNotMatch(html,/v0918-table\.js/,'V0.10.1+ must not load a competing V0.9 robustness writer');
 }else{
   assert.match(rating,/ratingIdx=hs\.findIndex/,'BS/CD rating must resolve its header semantically');
   const active=html.includes('/v0918-table.js')?read('public/v0918-table.js'):read('public/v0917-table.js');

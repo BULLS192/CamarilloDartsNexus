@@ -22,10 +22,10 @@ const dup=computeNexusRating(joshua,{tocConfirmed:true,toc:{ppd:35.7,mpr:4.36,pp
 assert.equal(dup.independenceFactors.toc,.35);assert.equal(dup.sourceBaseWeights.toc,7);assert.equal(dup.agreementFactors.toc,1);
 
 const pkg=JSON.parse(read('package.json')),html=read('public/index.html'),server=read('server.js'),store=read('src/store.js');
-assert.equal(pkg.version,'0.10.2');
-assert.match(html,/v1000-rating\.js\?v=0\.10\.2/);assert.match(html,/v1000-rating\.css\?v=0\.10\.2/);
+const [major=0,minor=0,patch=0]=String(pkg.version).split('.').map(Number);assert.ok(major>0||minor>10||(minor===10&&patch>=2),'package must be V0.10.2 or later');
+assert.match(html,/v1000-rating\.js\?v=0\.10\.\d+/);assert.match(html,/v1000-rating\.css\?v=0\.10\.\d+/);
 assert.doesNotMatch(html,/v0918-table\.js/,'obsolete V0.9 robustness runtime must remain retired');
 assert.match(store,/rpc\/camarillo_player_metrics_index/,'consensus rating must still use the unified rating+robustness payload');
 assert.match(server,/\/api\/players\/nexus-rating/,'Nexus Rating endpoint must remain available');
 const marker=JSON.parse(read('.v1002-consensus-rating-applied'));assert.equal(marker.version,'0.10.2');assert.equal(marker.ratingFormulaVersion,'1.2.0');assert.equal(marker.scaleMax,150);assert.equal(marker.duplicateTocFactor,.35);
-console.log('V0.10.2 consensus rating deployment contract passed: Joshua BS79.3 + EDC84.3 + TOC84.2 => NX82.2; duplicate/outlier controls active.');
+console.log('V0.10.2+ consensus rating deployment contract passed: Joshua BS79.3 + EDC84.3 + TOC84.2 => NX82.2; duplicate/outlier controls active.');

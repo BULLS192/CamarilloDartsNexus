@@ -38,6 +38,6 @@ const ui=read('public/v1000-rating.js'),server=read('server.js'),store=read('src
 assert.match(ui,/\/api\/players\/nexus-rating/);assert.match(ui,/NEXUS RATING','BS \/ CD RATING'/);assert.match(ui,/byBullshooterId/);assert.match(ui,/Nexus Rating \$\{fmt\(entry\.rating,1\)\}\/150/);assert.doesNotMatch(ui,/subtree:true/);
 assert.match(store,/export async function getNexusRatingIndexSql\(\)/);assert.ok(/rpc\/camarillo_player_metrics_index/.test(store)||/rpc\/camarillo_nexus_rating_index/.test(store));
 assert.match(server,/\/api\/players\/nexus-rating[\s\S]{0,200}getNexusRatingIndexSql/);
-assert.match(html,/v1000-rating\.js\?v=0\.10\.[012]/);assert.match(html,/v1000-rating\.css\?v=0\.10\.[012]/);
+assert.match(html,/v1000-rating\.js\?v=0\.10\.\d+/);assert.match(html,/v1000-rating\.css\?v=0\.10\.\d+/);
 const [major=0,minor=0,patch=0]=String(pkg.version).split('.').map(Number);assert.ok(major>0||minor>10||(minor===10&&patch>=0));
-console.log('V0.10.2 consensus Nexus Rating checks passed: Joshua 79.3/84.3/84.2 => NX82.2; duplicate TOC provenance discounted.');
+console.log('V0.10.2+ consensus Nexus Rating checks passed: Joshua 79.3/84.3/84.2 => NX82.2; duplicate TOC provenance discounted.');
