@@ -4,7 +4,10 @@ const root=fs.existsSync('/app/server.js')?'/app':process.cwd();
 const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
 const ui=read('public/v094-player-intel.js');
 const stats=read('public/v092-stats.js');
-const robust=fs.existsSync(`${root}/public/v0918-table.js`)?read('public/v0918-table.js'):fs.existsSync(`${root}/public/v0915-robustness.js`)?read('public/v0915-robustness.js'):'';
+const html=read('public/index.html');
+const unified=html.includes('/v1000-rating.js');
+const metrics=unified?read('public/v1000-rating.js'):'';
+const robust=!unified&&fs.existsSync(`${root}/public/v0918-table.js`)?read('public/v0918-table.js'):!unified&&fs.existsSync(`${root}/public/v0915-robustness.js`)?read('public/v0915-robustness.js'):'';
 const pkg=JSON.parse(read('package.json'));
 
 assert.doesNotMatch(ui,/ids\.slice\(0,200\).*Promise\.all/s,'Players boot must not fan out hundreds of TOC requests');
@@ -15,7 +18,14 @@ assert.match(ui,/robustnessCache=new Map\(\)/,'legacy cached calculations may re
 assert.match(ui,/observer\.disconnect\(\)/,'observer must disconnect during Nexus-owned DOM updates');
 assert.match(ui,/setTimeout\(runEnhance,120\)/,'DOM enhancement must be debounced');
 assert.match(ui,/loadSelectedTocIntel/,'TOC detail should load on demand for the selected player');
-if(robust){
+if(unified){
+  assert.match(ui,/CDNexusPlayerMetricsV1001\?\.refresh/,'legacy player intelligence must delegate to the V0.10.1 unified metrics renderer');
+  assert.doesNotMatch(ui,/function ensureRobustnessColumn\(\)[\s\S]{0,500}(?:innerHTML|robustness\(p\)|robustness-badge)/,'legacy player intelligence must not repaint or recalculate Robustness');
+  assert.match(metrics,/dataset\.v1001RobustSig/,'unified renderer must avoid redundant Robustness DOM writes with a stable signature');
+  assert.match(metrics,/dataset\.v1001RatingSig/,'unified renderer must avoid redundant Nexus Rating DOM writes with a stable signature');
+  assert.match(metrics,/state\.timer=setTimeout\(render,80\)/,'unified renderer must debounce observer-driven refreshes');
+  assert.doesNotMatch(metrics,/subtree:true/,'unified renderer must not watch nested mutations');
+}else if(robust){
   assert.match(ui,/CDNexusRobustnessV0918\?\.refresh/,'legacy player intelligence must delegate Robustness rendering to the current canonical renderer');
   assert.doesNotMatch(ui,/function ensureRobustnessColumn\(\)[\s\S]{0,500}(?:innerHTML|robustness\(p\)|robustness-badge)/,'legacy player intelligence must not repaint or recalculate Robustness');
   assert.match(robust,/dataset\.v0918Sig/,'canonical robustness renderer must avoid redundant DOM writes with a stable cell signature');
