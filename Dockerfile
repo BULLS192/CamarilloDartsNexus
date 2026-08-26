@@ -161,6 +161,13 @@ COPY tests/table-contract-v0917.test.js /app/tests/table-contract-v0917.test.js
 COPY deploy/patch-v0917-table-contract.mjs /tmp/patch-v0917-table-contract.mjs
 RUN node /tmp/patch-v0917-table-contract.mjs && rm /tmp/patch-v0917-table-contract.mjs
 
+# V0.9.18: fixed 0-100 robustness formula and one canonical Players table schema.
+COPY src/robustness-v0918.js /app/src/robustness.js
+COPY public/v0918-table.js /app/public/v0918-table.js
+COPY tests/robustness-formula-v0918.test.js /app/tests/robustness-formula-v0918.test.js
+COPY deploy/patch-v0918-robustness-formula.mjs /tmp/patch-v0918-robustness-formula.mjs
+RUN node /tmp/patch-v0918-robustness-formula.mjs && rm /tmp/patch-v0918-robustness-formula.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
