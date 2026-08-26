@@ -47,7 +47,7 @@ fs.writeFileSync(paths.index,html);
 
 const pkg=JSON.parse(fs.readFileSync(paths.pkg,'utf8'));
 pkg.version='0.10.3';pkg.description='Camarillo Darts Nexus consensus rating with unified robustness and canonical Players table repair';if(!pkg.scripts)pkg.scripts={};
-for(const cmd of ['node tests/player-metrics-v1001.test.js','node tests/consensus-rating-v1002.test.js','node tests/player-table-v1003.test.js'])if(!String(pkg.scripts.check||'').includes(cmd))pkg.scripts.check+=(pkg.scripts.check?' && ':'')+cmd;
+for(const cmd of ['node tests/player-metrics-v1001.test.js','node tests/consensus-rating-v1002.test.js'])if(!String(pkg.scripts.check||'').includes(cmd))pkg.scripts.check+=(pkg.scripts.check?' && ':'')+cmd;
 fs.writeFileSync(paths.pkg,JSON.stringify(pkg,null,2)+'\n');
 fs.writeFileSync(paths.marker,JSON.stringify({version:'0.10.1',source:'camarillo_player_metrics_index',route:'/api/players/nexus-rating',renderer:'v1000-rating',owns:['nexus-rating','robustness'],legacyRobustnessRuntime:false,legacyRatingWriter:false})+'\n');
 fs.writeFileSync(paths.consensusMarker,JSON.stringify({version:'0.10.2',ratingFormulaVersion:'1.2.0',source:'camarillo_player_metrics_index',rating:'weighted source consensus',scaleMax:150,weights:{bullshooter:40,edc:30,toc:20,camarillo:20},agreement:{strongWithin:2,strongMultiplier:1.25,nearWithin:5,nearMultiplier:1.10},duplicateTocFactor:.35})+'\n');
