@@ -9,6 +9,11 @@ const paths={
   marker:fs.existsSync('/app')?'/app/.v0922-robustness-applied':'.v0922-robustness-applied'
 };
 const need=(s,n,label)=>{if(!s.includes(n))throw new Error(`V0.9.22 patch: ${label} anchor not found`)};
+const replaceBetween=(text,startAnchor,endAnchor,replacement,label)=>{
+  const start=text.indexOf(startAnchor),end=start<0?-1:text.indexOf(endAnchor,start+startAnchor.length);
+  if(start<0||end<0||end<=start)throw new Error(`V0.9.22 patch: ${label} anchors not found`);
+  return text.slice(0,start)+replacement+text.slice(end);
+};
 
 let store=fs.readFileSync(paths.store,'utf8');
 if(!store.includes('export async function getRobustnessIndexSql(')){
@@ -32,13 +37,21 @@ player=player.replaceAll('EXTERNAL PLAYER INTELLIGENCE · V0.9.17','EXTERNAL PLA
 // V0.9.4 originally owned and repainted the Robustness cell. From V0.9.22 onward
 // it may keep its directory/tooling responsibilities, but the SQL-backed V0.9.18+
 // renderer is the only code allowed to write Robustness values.
-const legacyEnsure=/  function ensureRobustnessColumn\(\)\{[\s\S]*?\n  \}\n  function savedColumns/;
-if(!legacyEnsure.test(player))throw new Error('V0.9.22 patch: legacy V0.9.4 robustness renderer not found');
-player=player.replace(legacyEnsure,`  function ensureRobustnessColumn(){\n    playerTable=findPlayerTable();if(!playerTable)return;\n    window.CDNexusRobustnessV0918?.refresh?.();\n    applyPlayerFilters();\n  }\n  function savedColumns`);
+player=replaceBetween(
+  player,
+  'function ensureRobustnessColumn(){',
+  'function savedColumns(){',
+  `function ensureRobustnessColumn(){\n    playerTable=findPlayerTable();if(!playerTable)return;\n    window.CDNexusRobustnessV0918?.refresh?.();\n    applyPlayerFilters();\n  }\n  `,
+  'legacy V0.9.4 robustness renderer'
+);
 
-const legacyFilter=/  function applyPlayerFilters\(\)\{[\s\S]*?\n  \}\n  function ensurePlayerToolbar/;
-if(!legacyFilter.test(player))throw new Error('V0.9.22 patch: legacy V0.9.4 robustness filter not found');
-player=player.replace(legacyFilter,`  function applyPlayerFilters(){\n    if(!playerTable)return;\n    const q=norm($('#playerDirectorySearch')?.value||''),source=$('#playerSourceFilter')?.value||'all',rob=$('#playerRobustFilter')?.value||'all';\n    for(const row of playerTable.querySelectorAll('tbody tr')){\n      const p=playerForRow(row);if(!p){row.style.display='';continue}\n      const searchable=norm(\`${'${p.name||\'\'} ${p.nickname||\'\'} ${p.bullshooter?.id||\'\'} ${p.edc?.name||\'\'}'}\`);\n      const f={bs:row.dataset.hasBs==='1',toc:row.dataset.hasToc==='1',edc:row.dataset.hasEdc==='1',cd:row.dataset.hasCd==='1'};\n      const sources=Number(row.dataset.sources||0),score=Number(row.dataset.robustness);\n      let ok=!q||searchable.includes(q);\n      if(source==='multi')ok=ok&&sources>=2;else if(source==='needs')ok=ok&&sources<2;else if(source==='bs')ok=ok&&f.bs;else if(source==='toc')ok=ok&&f.toc;else if(source==='edc')ok=ok&&f.edc;else if(source==='cd')ok=ok&&f.cd;\n      if(rob==='strong')ok=ok&&Number.isFinite(score)&&score>=70;else if(rob==='solid')ok=ok&&Number.isFinite(score)&&score>=50;else if(rob==='thin')ok=ok&&Number.isFinite(score)&&score<50;\n      row.style.display=ok?'':'none';\n    }\n  }\n  function ensurePlayerToolbar`);
+player=replaceBetween(
+  player,
+  'function applyPlayerFilters(){',
+  'function ensurePlayerToolbar(){',
+  `function applyPlayerFilters(){\n    if(!playerTable)return;\n    const q=norm($('#playerDirectorySearch')?.value||''),source=$('#playerSourceFilter')?.value||'all',rob=$('#playerRobustFilter')?.value||'all';\n    for(const row of playerTable.querySelectorAll('tbody tr')){\n      const p=playerForRow(row);if(!p){row.style.display='';continue}\n      const searchable=norm(\`${'${p.name||\'\'} ${p.nickname||\'\'} ${p.bullshooter?.id||\'\'} ${p.edc?.name||\'\'}'}\`);\n      const f={bs:row.dataset.hasBs==='1',toc:row.dataset.hasToc==='1',edc:row.dataset.hasEdc==='1',cd:row.dataset.hasCd==='1'};\n      const sources=Number(row.dataset.sources||0),score=Number(row.dataset.robustness);\n      let ok=!q||searchable.includes(q);\n      if(source==='multi')ok=ok&&sources>=2;else if(source==='needs')ok=ok&&sources<2;else if(source==='bs')ok=ok&&f.bs;else if(source==='toc')ok=ok&&f.toc;else if(source==='edc')ok=ok&&f.edc;else if(source==='cd')ok=ok&&f.cd;\n      if(rob==='strong')ok=ok&&Number.isFinite(score)&&score>=70;else if(rob==='solid')ok=ok&&Number.isFinite(score)&&score>=50;else if(rob==='thin')ok=ok&&Number.isFinite(score)&&score<50;\n      row.style.display=ok?'':'none';\n    }\n  }\n  `,
+  'legacy V0.9.4 robustness filter'
+);
 fs.writeFileSync(paths.player,player);
 
 let html=fs.readFileSync(paths.index,'utf8');
