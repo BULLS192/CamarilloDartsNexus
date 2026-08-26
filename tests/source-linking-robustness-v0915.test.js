@@ -10,7 +10,7 @@ assert.match(server,/setPlayerExternalSource\(p\.id,'edc',edc\)/,'manual EDC lin
 assert.match(server,/req\.method==='DELETE'/,'unlink routes must remain available');
 assert.match(playerUi,/recordKey:record\.recordKey\|\|''/,'main EDC link must send recordKey');
 assert.match(playerUi,/Unlink EDC record/,'EDC unlink action must be explicit');
-assert.match(playerUi,/window\.CDNexusRobustnessV0918\?\.refresh/,'legacy player-intelligence calls must delegate to the current canonical robustness renderer');
+assert.ok(/window\.CDNexusRobustnessV0918\?\.refresh/.test(playerUi)||/window\.CDNexusPlayerMetricsV1001\?\.refresh/.test(playerUi),'legacy player-intelligence calls must delegate to the active canonical robustness renderer');
 const legacyEnsure=playerUi.match(/function ensureRobustnessColumn\(\)\{([\s\S]*?)\n\s*\}\n\s*function savedColumns/);
 assert.ok(legacyEnsure,'legacy compatibility hook must remain present');
 assert.doesNotMatch(legacyEnsure[1],/innerHTML|robustness\(p\)|robustness-badge/,'legacy player-intelligence must not repaint robustness');
