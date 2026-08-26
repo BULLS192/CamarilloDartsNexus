@@ -24,20 +24,42 @@ jobs:
         uses: actions/checkout@v4
       - name: Validate stats sources UI contract
         run: node tests/stats-sources-ui.test.js
-      - name: Probe Render service hostname from render.yaml
-        shell: bash
-        run: |
-          set +e
-          for host in camarillo-darts.onrender.com camarillo-darts-nexus.onrender.com camarillodarts.onrender.com; do
-            echo "######## ${host} ########"
-            for path in / /health /api/players /api/players/robustness /v0918-table.js; do
-              code=$(curl --connect-timeout 15 --max-time 45 -sS -o /tmp/probe.body -w '%{http_code}' "https://${host}${path}")
-              rc=$?
-              echo "=== ${path} | curl_rc=${rc} http_status=${code} ==="
-              head -c 900 /tmp/probe.body 2>/dev/null || true
-              echo
-            done
-          done
-          exit 0
       - name: Build deployment image and run all checks
         run: docker build --progress=plain -t camarillo-darts-multisource-ci .
+      - name: Runtime-test robustness route in built image
+        shell: bash
+        run: |
+          cat >/tmp/mock-supabase.mjs <<'NODE'
+          import http from 'node:http';
+          const payload={generatedAt:new Date().toISOString(),formulaVersion:'ci-runtime',count:1,byBullshooterId:{'192985':{playerId:'recovered-192985',bullshooterId:'192985',name:'Kevin BULL.S Yap',score:36,label:'Developing',sources:1,flags:{bs:true,toc:false,edc:false,cd:false},components:{edc:0,toc:0,bullshooter501:16.4,bullshooterCricket:20},evidence:{edcGames:0,bs501Games:41,bsCricketGames:69}}},byPlayerId:{}};
+          http.createServer((req,res)=>{
+            if(req.url==='/rest/v1/rpc/camarillo_robustness_index'){
+              res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify(payload));return;
+            }
+            if(req.url==='/rest/v1/rpc/camarillo_state_read'){
+              res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify({version:'0.9.22',players:[],competitions:[],matches:[],games:[],feats:[]}));return;
+            }
+            res.writeHead(404,{'content-type':'application/json'});res.end('{}');
+          }).listen(18080,'0.0.0.0');
+          NODE
+          node /tmp/mock-supabase.mjs >/tmp/mock.log 2>&1 &
+          mock_pid=$!
+          docker run -d --name cdn-runtime --add-host=host.docker.internal:host-gateway -p 10000:10000 \
+            -e ADMIN_USER=ci -e ADMIN_PASSWORD=ci \
+            -e SUPABASE_URL=http://host.docker.internal:18080 \
+            -e SUPABASE_PUBLISHABLE_KEY=ci -e CAMARILLO_STATE_TOKEN=ci \
+            -e EDC_BACKGROUND_SYNC_MS=86400000 -e TOC_BACKGROUND_SYNC_MS=86400000 \
+            camarillo-darts-multisource-ci
+          cleanup(){ docker logs cdn-runtime || true; docker rm -f cdn-runtime >/dev/null 2>&1 || true; kill "$mock_pid" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          for i in {1..30}; do curl -fsS http://127.0.0.1:10000/health && break; sleep 1; done
+          echo
+          code=$(curl -sS -u ci:ci -o /tmp/runtime-robustness.json -w '%{http_code}' http://127.0.0.1:10000/api/players/robustness)
+          echo "runtime robustness HTTP $code"
+          cat /tmp/runtime-robustness.json; echo
+          test "$code" = 200
+          node - <<'NODE'
+          const fs=require('fs');const d=JSON.parse(fs.readFileSync('/tmp/runtime-robustness.json','utf8'));
+          if(d?.byBullshooterId?.['192985']?.score!==36)throw Error(`Expected runtime R36, got ${JSON.stringify(d)}`);
+          console.log('Runtime robustness route passed: 192985 => R36');
+          NODE
