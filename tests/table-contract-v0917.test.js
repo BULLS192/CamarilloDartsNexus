@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root=fs.existsSync('/app/server.js')?'/app':process.cwd();
+const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
+const rating=read('public/v0711.js'),bull=read('public/v077.js'),ui=read('public/v0917-table.js'),html=read('public/index.html'),pkg=JSON.parse(read('package.json'));
+assert.doesNotMatch(rating,/cells\[9\]\.innerHTML=ratingMarkup/,'BS/CD rating may not use a hard-coded cell index');
+assert.match(rating,/ratingIdx=hs\.findIndex/,'BS/CD rating must resolve its header semantically');
+assert.doesNotMatch(bull,/cells\[4\]\.textContent/,'BullShooter current may not use a hard-coded cell index');
+assert.match(bull,/const cur=idx\('BS CURRENT'\),i50=idx\('BS50'\),i20=idx\('BS20'\),i10=idx\('BS10'\)/,'BullShooter display must resolve columns by headers');
+assert.match(ui,/robIdx=hidx\(t,'ROBUSTNESS'\)/,'Robustness must use the actual Robustness header index');
+assert.match(ui,/cell\.dataset\.v0917Sig!==sig\|\|!cell\.querySelector\('\.robustness-badge'\)/,'Robustness must repair a cell if a legacy script overwrites its badge');
+assert.match(ui,/observe\(body,\{childList:true,subtree:true\}\)/,'Robustness must observe nested legacy cell repainting');
+assert.match(ui,/R \$\{entry\.score\}/,'Robustness cell must display the robustness score, not the rating block');
+assert.match(html,/v0917-table\.js/);assert.doesNotMatch(html,/v0916-robustness\.js/,'old renderer must not compete with V0.9.17');
+assert.equal(pkg.version,'0.9.17');
+console.log('V0.9.17 semantic player-table contract checks passed');
