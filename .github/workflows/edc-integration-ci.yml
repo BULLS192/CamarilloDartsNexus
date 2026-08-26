@@ -3,7 +3,7 @@ name: Multi-source Integration CI
 on:
   push:
     branches:
-      - 'v0.9.*'
+      - 'v0.*'
   pull_request:
     paths:
       - 'src/edc.js'
@@ -13,6 +13,12 @@ on:
       - 'public/v092-stats.css'
       - 'deploy/patch-v092-stats.mjs'
       - 'tests/stats-sources-ui.test.js'
+      - 'src/nexus-rating-v1000.js'
+      - 'public/v1000-rating.js'
+      - 'public/v1000-rating.css'
+      - 'deploy/patch-v1000-nexus-rating.mjs'
+      - 'tests/nexus-rating-v1000.test.js'
+      - 'supabase/migrations/**'
       - 'Dockerfile'
       - '.github/workflows/edc-integration-ci.yml'
 
