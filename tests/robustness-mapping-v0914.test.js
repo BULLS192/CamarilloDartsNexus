@@ -20,5 +20,6 @@ if(robust){
   assert.ok(fnStart>=0&&exact>fnStart&&cached>exact,'BullShooter exact lookup must happen before stale row-cache/name fallback');
   assert.doesNotMatch(ui,/const text=row\?\.textContent\|\|'',bs=\(text\.match/,'whole-row number scanning must not be the primary mapper');
 }
-const parts=String(pkg.version||'0.0.0').split('.').map(Number);assert.equal(parts[0],0);assert.equal(parts[1],9);assert.ok(parts[2]>=14,`Expected V0.9.14 or later, got ${pkg.version}`);
+const [major=0,minor=0,patch=0]=String(pkg.version||'0.0.0').split('.').map(Number);
+assert.ok(major>0||minor>9||(minor===9&&patch>=14),`Expected V0.9.14 or later, got ${pkg.version}`);
 console.log('V0.9.14+ robustness mapping checks passed');
