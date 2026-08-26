@@ -181,6 +181,11 @@ COPY tests/player-metrics-v1001.test.js /app/tests/player-metrics-v1001.test.js
 COPY deploy/patch-v1001-unified-player-metrics.mjs /tmp/patch-v1001-unified-player-metrics.mjs
 RUN node /tmp/patch-v1001-unified-player-metrics.mjs && rm /tmp/patch-v1001-unified-player-metrics.mjs
 
+# V0.10.2: source-rating consensus, agreement bonus, outlier control and explicit duplicate-source discount.
+COPY tests/consensus-rating-v1002.test.js /app/tests/consensus-rating-v1002.test.js
+COPY deploy/patch-v1002-consensus-rating.mjs /tmp/patch-v1002-consensus-rating.mjs
+RUN node /tmp/patch-v1002-consensus-rating.mjs && rm /tmp/patch-v1002-consensus-rating.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
