@@ -137,6 +137,11 @@ COPY tests/identity-observer-v0913.test.js /app/tests/identity-observer-v0913.te
 COPY deploy/patch-v0913-identity-safety.mjs /tmp/patch-v0913-identity-safety.mjs
 RUN node /tmp/patch-v0913-identity-safety.mjs && rm /tmp/patch-v0913-identity-safety.mjs
 
+# V0.9.14: map robustness rows deterministically from the visible BullShooter ID column.
+COPY tests/robustness-mapping-v0914.test.js /app/tests/robustness-mapping-v0914.test.js
+COPY deploy/patch-v0914-robustness-mapping.mjs /tmp/patch-v0914-robustness-mapping.mjs
+RUN node /tmp/patch-v0914-robustness-mapping.mjs && rm /tmp/patch-v0914-robustness-mapping.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
