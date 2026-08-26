@@ -53,8 +53,8 @@ begin
       case when bs_mpr is not null then least(bs_cricket_games,50)/50*20 else 0 end as w_bs_mpr,
       case when edc_confirmed and edc_ppd is not null then case when edc_games is null then 5 else least(edc_games,80)/80*15 end else 0 end as w_edc_ppd,
       case when edc_confirmed and edc_mpr is not null then case when edc_games is null then 5 else least(edc_games,80)/80*15 end else 0 end as w_edc_mpr,
-      case when toc_linked and toc_ppd is not null then 15 else 0 end as w_toc_ppd,
-      case when toc_linked and toc_mpr is not null then 15 else 0 end as w_toc_mpr,
+      case when toc_linked and toc_ppd is not null then 10 else 0 end as w_toc_ppd,
+      case when toc_linked and toc_mpr is not null then 10 else 0 end as w_toc_mpr,
       case when cd_ppd is not null then least(cd_01_games,30)/30*10 else 0 end as w_cd_ppd,
       case when cd_mpr is not null then least(cd_cricket_games,30)/30*10 else 0 end as w_cd_mpr
     from established
@@ -76,7 +76,7 @@ begin
     from consensus
   )
   select jsonb_build_object(
-    'generatedAt',now(),'formulaVersion','1.1.0','ratingScaleMax',150,'formula','PPD + 10*MPR','count',count(*),
+    'generatedAt',now(),'formulaVersion','1.1.1','ratingScaleMax',150,'formula','PPD + 10*MPR','ratingWeights',jsonb_build_object('bullshooter',40,'edc',30,'toc',20,'camarillo',20),'count',count(*),
     'byBullshooterId',coalesce(jsonb_object_agg(bullshooter_id,jsonb_build_object(
       'playerId',player_id,'bullshooterId',bullshooter_id,'name',display_name,'rating',nexus_rating,'nexusPPD',round(nexus_ppd,2),'nexusMPR',round(nexus_mpr,2),
       'evidenceWeight',round(w_bs+w_edc+w_toc+w_cd,1),'sourceWeights',jsonb_build_object('bullshooter',round(w_bs,1),'edc',round(w_edc,1),'toc',round(w_toc,1),'camarillo',round(w_cd,1)),
