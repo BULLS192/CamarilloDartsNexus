@@ -6,7 +6,7 @@ const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
 
 const joshua={bullshooter:{id:'180864',last50PPD:35.62,last20PPD:35.65,last10PPD:35.89,last50MPR:4.33,last20MPR:4.42,last10MPR:4.37,currentStatsDiagnostics:{x01Count:500,cricketCount:500}},edc:{confirmed:true,ppd:37.65,mpr:4.66,games:324}};
 const j=computeNexusRating(joshua,{tocConfirmed:true,toc:{ppd:37.455,mpr:4.67,ppdSource:'5Z2H44',mprSource:'5Z2H44'}});
-assert.equal(j.rating,81.8,'production-shaped Joshua v2 consensus must be NX81.8');
+assert.equal(j.rating,81.9,'production-shaped Joshua v2 consensus must be NX81.9');
 assert.deepEqual(j.sourceRatings,{bullshooter:79.2,edc:84.3,toc:84.2,camarillo:0});
 assert.deepEqual(j.sourceBaseWeights,{bullshooter:40,edc:30,toc:15,camarillo:0});
 assert.deepEqual(j.sourceWeights,{bullshooter:40,edc:30,toc:15,camarillo:0});
