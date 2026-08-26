@@ -161,12 +161,20 @@ COPY tests/table-contract-v0917.test.js /app/tests/table-contract-v0917.test.js
 COPY deploy/patch-v0917-table-contract.mjs /tmp/patch-v0917-table-contract.mjs
 RUN node /tmp/patch-v0917-table-contract.mjs && rm /tmp/patch-v0917-table-contract.mjs
 
-# V0.9.18: fixed 0-100 robustness formula and one canonical Players table schema.
+# V0.9.18-V0.9.23: canonical table/robustness contract and guaranteed runtime loader.
 COPY src/robustness-v0918.js /app/src/robustness.js
 COPY public/v0918-table.js /app/public/v0918-table.js
 COPY tests/robustness-formula-v0918.test.js /app/tests/robustness-formula-v0918.test.js
 COPY deploy/patch-v0918-robustness-formula.mjs /tmp/patch-v0918-robustness-formula.mjs
 RUN node /tmp/patch-v0918-robustness-formula.mjs && rm /tmp/patch-v0918-robustness-formula.mjs
+
+# V0.10.0: SQL-backed multi-source Nexus Rating. Reuse the existing rating column; do not add another table column.
+COPY src/nexus-rating-v1000.js /app/src/nexus-rating-v1000.js
+COPY public/v1000-rating.js /app/public/v1000-rating.js
+COPY public/v1000-rating.css /app/public/v1000-rating.css
+COPY tests/nexus-rating-v1000.test.js /app/tests/nexus-rating-v1000.test.js
+COPY deploy/patch-v1000-nexus-rating.mjs /tmp/patch-v1000-nexus-rating.mjs
+RUN node /tmp/patch-v1000-nexus-rating.mjs && rm /tmp/patch-v1000-nexus-rating.mjs
 
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev

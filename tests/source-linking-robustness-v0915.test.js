@@ -17,5 +17,6 @@ assert.doesNotMatch(legacyEnsure[1],/innerHTML|robustness\(p\)|robustness-badge/
 assert.match(identityUi,/recordKey:eb\.dataset\.recordKey/,'RAW EDC linking must forward recordKey');
 assert.match(tocUi,/Unlink this PPD\/TOC record/,'TOC unlink must require explicit confirmation');
 if(fs.existsSync(`${root}/src/robustness.js`)){const r=read('src/robustness.js');assert.match(r,/currentStatsDiagnostics\?\.x01Count/,'robustness must use BullShooter X01 evidence');assert.match(r,/currentStatsDiagnostics\?\.cricketCount/,'robustness must use BullShooter Cricket evidence')}else{const r=read('public/v0915-robustness.js');assert.match(r,/currentStatsDiagnostics\?\.x01Count/);assert.match(r,/currentStatsDiagnostics\?\.cricketCount/)}
-assert.ok(/^0\.9\.(?:1[5-9]|[2-9]\d)$/.test(pkg.version),`expected V0.9.15+ package, got ${pkg.version}`);
+const [major=0,minor=0,patch=0]=String(pkg.version).split('.').map(Number);
+assert.ok(major>0||minor>9||(minor===9&&patch>=15),`expected V0.9.15+ package, got ${pkg.version}`);
 console.log('V0.9.15+ manual EDC identity, unlink and robustness guarantees passed');

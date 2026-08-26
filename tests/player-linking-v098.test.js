@@ -26,5 +26,6 @@ if(robust){
   assert.match(ui,/row\.insertBefore\(cell,actionCell\)|cell\.nextElementSibling!==actionCell/,'robustness cells must be repaired immediately before Actions');
 }
 
-const parts=String(pkg.version).split('.').map(Number);assert.equal(parts[0],0);assert.equal(parts[1],9);assert.ok(parts[2]>=8,'V0.9.8 regression contract must remain valid in later V0.9.x releases');
+const [major=0,minor=0,patch=0]=String(pkg.version).split('.').map(Number);
+assert.ok(major>0||minor>9||(minor===9&&patch>=8),'V0.9.8+ regression contract must remain valid in later releases');
 console.log('V0.9.8+ TOC/EDC linking, request-load and column-order checks passed');

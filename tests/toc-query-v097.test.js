@@ -6,8 +6,8 @@ const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
 const toc=read('src/dartstoc.js');
 const pkg=JSON.parse(read('package.json'));
 
-const [major,minor,patch]=String(pkg.version).split('.').map(Number);
-assert.ok(major===0&&minor===9&&patch>=7,'V0.9.7+ query-performance contract requires version 0.9.7 or newer');
+const [major=0,minor=0,patch=0]=String(pkg.version).split('.').map(Number);
+assert.ok(major>0||minor>9||(minor===9&&patch>=7),'V0.9.7+ query-performance contract requires version 0.9.7 or newer');
 assert.match(toc,/const VERSION='0\.9\.\d+'/);
 assert.match(toc,/const REMOTE_PLAYER_SELECT=/,'TOC reads should use a lightweight explicit column list');
 assert.doesNotMatch(toc,/mpid\.ilike/,'TOC text search must never force wildcard MPID scans');
