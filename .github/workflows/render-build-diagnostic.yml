@@ -1,0 +1,16 @@
+name: Render Build Diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/v0104-render-build
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Render image
+        run: docker build --progress=plain -t camarillo-render-diagnostic .
