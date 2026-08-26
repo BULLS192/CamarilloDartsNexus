@@ -19,7 +19,7 @@ const sm=server.match(storeImportRe);if(!sm)throw new Error('V0.9.20 patch: stor
 if(!sm[1].includes('listRobustnessPlayersRaw'))server=server.replace(storeImportRe,(_,names)=>`import {${names.trimEnd()},listRobustnessPlayersRaw\n} from './src/store.js';`);
 const oldRoute="if(url.pathname==='/api/players/robustness'&&req.method==='GET'){const players=await listPlayers(),links=await listTocLinks().catch(()=>[]),tocById=new Map();await Promise.all((links||[]).filter(l=>l.confirmed!==false).map(async l=>{const tid=String(l.tocId??l.toc_id??'');if(!tid||tocById.has(tid))return;try{const row=await getTocPlayer(tid);if(row)tocById.set(tid,row)}catch{}}));return json(res,200,robustnessIndex(players,{links,tocById}))}";
 need(server,oldRoute,'V0.9.16 robustness endpoint');
-server=server.replace(oldRoute,"if(url.pathname==='/api/players/robustness'&&req.method==='GET'){const players=await listRobustnessPlayersRaw(),links=await listTocLinks().catch(()=>[]);return json(res,200,robustnessIndex(players,{links}))}");
+server=server.replace(oldRoute,"if(url.pathname==='/api/players/robustness'&&req.method==='GET'){const players=await listRobustnessPlayersRaw(),links=await listTocLinks().catch(()=>[]),result=robustnessIndex(players,{links});return json(res,200,{...result,diagnostics:{source:'raw-state',playerCount:players.length,indexedBullshooterCount:Object.keys(result.byBullshooterId||{}).length}})}");
 server=server.replaceAll("version:'0.9.17'","version:'0.9.20'").replaceAll("version:'0.9.19'","version:'0.9.20'").replaceAll('Camarillo Darts V0.9.17 running','Camarillo Darts V0.9.20 running').replaceAll('Camarillo Darts V0.9.19 running','Camarillo Darts V0.9.20 running');
 fs.writeFileSync(paths.server,server);
 
