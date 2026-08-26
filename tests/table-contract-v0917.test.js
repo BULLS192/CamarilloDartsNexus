@@ -11,7 +11,12 @@ if(html.includes('/v1000-rating.js')){
   if(/function canonicalize\(t\)/.test(unified)){
     const canon=unified.indexOf('canonicalize(t);'),ratingIdx=unified.indexOf("headerIndex(t,'NEXUS RATING')");
     assert.ok(canon>=0&&ratingIdx>canon,'V0.10.3+ must canonicalize the table before resolving Nexus Rating');
-    assert.match(unified,/take\('NEXUS RATING','BS \/ CD RATING','RATING'\)/,'canonicalizer must absorb legacy rating headers');
+    if(String(pkg.version).startsWith('0.11.')){
+      assert.match(unified,/take\('NEXUS RATING','CAMARILLO','BS \/ CD RATING','RATING'\)/,'V0.11+ canonicalizer must absorb the former Camarillo column into Nexus Rating');
+      assert.match(unified,/const EXPECTED=\['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','NEXUS RATING','ROBUSTNESS','ACTIONS'\]/,'V0.11+ must use the compact schema with Nexus replacing Camarillo');
+    }else{
+      assert.match(unified,/take\('NEXUS RATING','BS \/ CD RATING','RATING'\)/,'canonicalizer must absorb legacy rating headers');
+    }
   }else{
     assert.match(unified,/headerIndex\(t,'NEXUS RATING','BS \/ CD RATING'\)/,'unified rating must resolve its target semantically');
   }
