@@ -1,0 +1,36 @@
+name: V0.11.3 Contract Tests and Validate
+on:
+  push:
+    branches: [fix/v0113-bullshooter-window-reliability]
+    paths: [.github/workflows/v0113-fix-tests-and-validate.yml]
+permissions:
+  contents: write
+jobs:
+  fix-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Align source contract tests to V0.11.3
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in [
+            'tests/nexus-rating-v1000.test.js',
+            'tests/player-metrics-v1001.test.js',
+            'tests/consensus-rating-v1002.test.js',
+            'tests/table-contract-v0917.test.js'
+          ]:
+              p=Path(name)
+              if p.exists(): p.write_text(p.read_text().replace('0.11.2','0.11.3').replace('V0.11.2','V0.11.3'))
+          PY
+      - name: Commit test contract updates
+        shell: bash
+        run: |
+          git config user.name "BULLS192"
+          git config user.email "kevinbullsyap@gmail.com"
+          git add tests/nexus-rating-v1000.test.js tests/player-metrics-v1001.test.js tests/consensus-rating-v1002.test.js tests/table-contract-v0917.test.js
+          git commit -m "Align V0.11.3 contract tests" || true
+          git push
+      - name: Build exact Render Docker image
+        run: docker build --progress=plain -t camarillo-v0113 .
