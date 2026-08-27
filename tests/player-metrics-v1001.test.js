@@ -18,10 +18,11 @@ assert.doesNotMatch(store,/rpc\/camarillo_nexus_rating_index/,'transport must no
 assert.match(server,/\/api\/players\/nexus-rating[\s\S]{0,200}getNexusRatingIndexSql/);
 assert.match(ui,/entry\?\.robustness/);assert.match(ui,/robustCell\.innerHTML=robustnessMarkup\(r\)/);assert.match(ui,/ratingCell\.innerHTML=ratingMarkup\(entry\)/);assert.match(ui,/camarilloCell\.innerHTML=camarilloMarkup\(entry\)/);assert.match(ui,/window\.CDNexusPlayerMetricsV1001/);assert.doesNotMatch(ui,/subtree:true/);
 
-const expected="['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO','NEXUS RATING','ROBUSTNESS','ACTIONS']";
+const expected="['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO RATING','NEXUS RATING','ROBUSTNESS','ACTIONS']";
 assert.ok(ui.includes(expected),'Players table must keep Camarillo local rating distinct from Nexus');
-assert.match(ui,/CAMARILLO:'Camarillo Rating'/,'local column must be explicitly named Camarillo Rating');
-assert.match(ui,/const camarillo=take\('CAMARILLO'\)/);assert.match(ui,/const rating=take\('NEXUS RATING','BS \/ CD RATING','RATING'\)/);
+assert.match(ui,/'CAMARILLO RATING':'Camarillo Rating'/,'local column must be explicitly named Camarillo Rating');
+assert.match(ui,/const camarillo=take\('CAMARILLO RATING','CAMARILLO'\)/);assert.match(ui,/const rating=take\('NEXUS RATING','BS \/ CD RATING','RATING'\)/);
+assert.match(ui,/camarillo:headerIndex\(t,'CAMARILLO RATING','CAMARILLO'\)/,'visible Camarillo Rating header must resolve after canonicalization');
 assert.match(ui,/ordered\[8\]\.dataset\.v111='camarillo-rating'/);assert.match(ui,/ordered\[9\]\.dataset\.v1100='nexus-rating'/);assert.match(ui,/ordered\[10\]\.dataset\.v1100='robustness'/);
 assert.match(ui,/0 Camarillo games/,'matched players with no local play must visibly show Camarillo 0');
 assert.match(ui,/Camarillo Rating uses only Camarillo-organized league, tournament and event games/);
@@ -35,12 +36,12 @@ assert.match(ui,/windowMarkup\(b\.last50PPD,b\.last50MPR,'BullShooter Last 50'\)
 assert.match(ui,/function renderBullshooter\(row,idx,player\)/);assert.match(ui,/pidx\.byBs\.get\(id\)/);assert.match(ui,/pidx\.byId\.get\(pid\)/);assert.match(ui,/pidx\.byName\.get\(key\)/);
 assert.ok(ui.includes("match(/#\\s*(\\d{3,})/)"));assert.ok(!ui.includes("match(/#\\s*(\\d{3,})\\b/)"));
 
-assert.doesNotMatch(html,/v0918-table\.js/);assert.match(html,/v1000-rating\.js\?v=0\.11\.0/);assert.match(html,/v1000-rating\.css\?v=0\.11\.0/);
+assert.doesNotMatch(html,/v0918-table\.js/);assert.match(html,/v1000-rating\.js\?v=0\.11\.2/);assert.match(html,/v1000-rating\.css\?v=0\.11\.2/);
 const legacyEnsure=legacyPlayer.match(/function ensureRobustnessColumn\(\)\{([\s\S]*?)\n\s*\}\n\s*function savedColumns/);assert.ok(legacyEnsure);assert.match(legacyEnsure[1],/CDNexusPlayerMetricsV1001/);
 const patchRatings=legacyRating.match(/async function patchRatings\(\)\{([\s\S]*?)\n\s*\}\n\n\s*let timer=null;/);assert.ok(patchRatings);assert.match(patchRatings[1],/CDNexusPlayerMetricsV1001/);
 const patchDisplays=legacyBull.match(/async function patchDisplays\(\)\{([\s\S]*?)\n\s*\}\n\n\s*async function enhanceDiagnostics/);assert.ok(patchDisplays);assert.match(patchDisplays[1],/CDNexusPlayerMetricsV1001/);
 
-const marker=JSON.parse(read('.v1001-player-metrics-applied'));assert.equal(marker.version,'0.11.0');assert.deepEqual(marker.owns,['bs-current','bs50-rating','bs20-rating','bs10-rating','camarillo-rating','nexus-rating','robustness-grade']);assert.deepEqual(marker.robustnessGrades,{S:'85-100',A:'70-84',B:'50-69',C:'25-49',D:'0-24'});
-const tableMarker=JSON.parse(read('.v1003-player-table-applied'));assert.deepEqual(tableMarker.schema,['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO','NEXUS RATING','ROBUSTNESS','ACTIONS']);assert.deepEqual(tableMarker.statCells,{bsCurrent:4,bs50:5,bs20:6,bs10:7,camarillo:8,nexusRating:9,robustness:10,actions:11});
-assert.equal(pkg.version,'0.11.0');
-console.log('V0.11.0 player metrics passed: Camarillo local rating is distinct from Nexus and Robustness renders S/A/B/C/D without changing the score math.');
+const marker=JSON.parse(read('.v1001-player-metrics-applied'));assert.equal(marker.version,'0.11.2');assert.deepEqual(marker.owns,['bs-current','bs50-rating','bs20-rating','bs10-rating','camarillo-rating','nexus-rating','robustness-grade']);assert.deepEqual(marker.robustnessGrades,{S:'85-100',A:'70-84',B:'50-69',C:'25-49',D:'0-24'});
+const tableMarker=JSON.parse(read('.v1003-player-table-applied'));assert.equal(tableMarker.version,'0.11.2');assert.deepEqual(tableMarker.schema,['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO RATING','NEXUS RATING','ROBUSTNESS','ACTIONS']);assert.deepEqual(tableMarker.statCells,{bsCurrent:4,bs50:5,bs20:6,bs10:7,camarilloRating:8,nexusRating:9,robustness:10,actions:11});
+assert.equal(pkg.version,'0.11.2');
+console.log('V0.11.2 player metrics passed: Camarillo local rating is distinct from Nexus and Robustness renders S/A/B/C/D without changing the score math.');
