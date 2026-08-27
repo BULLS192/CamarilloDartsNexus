@@ -18,6 +18,8 @@ on:
       - 'public/v1000-rating.css'
       - 'deploy/patch-v1000-nexus-rating.mjs'
       - 'tests/nexus-rating-v1000.test.js'
+      - 'deploy/patch-v0913-identity-safety.mjs'
+      - 'tests/identity-observer-v0913.test.js'
       - 'supabase/migrations/**'
       - 'Dockerfile'
       - '.github/workflows/edc-integration-ci.yml'
