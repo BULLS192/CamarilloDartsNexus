@@ -48,6 +48,20 @@ if(fs.existsSync(playerPath)){
   fs.writeFileSync(playerPath,player);
 }
 
+// These are deployment-contract tests copied into the image before this final patch.
+// Keep their expected version/header contract aligned with the runtime they validate.
+for(const rel of ['tests/player-metrics-v1001.test.js','tests/nexus-rating-v1000.test.js','tests/consensus-rating-v1002.test.js','tests/table-contract-v0917.test.js']){
+  const testPath=path(rel);if(!fs.existsSync(testPath))continue;
+  let test=fs.readFileSync(testPath,'utf8');
+  test=test.replaceAll('0.11.0','0.11.2')
+    .replaceAll("BS10','CAMARILLO','NEXUS RATING","BS10','CAMARILLO RATING','NEXUS RATING")
+    .replaceAll("CAMARILLO:'Camarillo Rating'","'CAMARILLO RATING':'Camarillo Rating'")
+    .replaceAll("take\\('CAMARILLO'\\)","take\\('CAMARILLO RATING','CAMARILLO'\\)")
+    .replaceAll("headerIndex\\(t,'CAMARILLO'\\)","headerIndex\\(t,'CAMARILLO RATING','CAMARILLO'\\)")
+    .replaceAll('camarillo:8,nexusRating:9','camarilloRating:8,nexusRating:9');
+  fs.writeFileSync(testPath,test);
+}
+
 const pkgPath=path('package.json');
 const pkg=JSON.parse(fs.readFileSync(pkgPath,'utf8'));
 pkg.version='0.11.2';
