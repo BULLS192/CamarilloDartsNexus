@@ -13,10 +13,10 @@ const paths={
   consensusMarker:fs.existsSync('/app')?'/app/.v1002-consensus-rating-applied':'.v1002-consensus-rating-applied',
   tableMarker:fs.existsSync('/app')?'/app/.v1003-player-table-applied':'.v1003-player-table-applied'
 };
-const need=(s,n,label)=>{if(!s.includes(n))throw new Error(`V0.11.2 patch: ${label} anchor not found`)};
+const need=(s,n,label)=>{if(!s.includes(n))throw new Error(`V0.11.3 patch: ${label} anchor not found`)};
 const replaceBetween=(text,startAnchor,endAnchor,replacement,label)=>{
   const start=text.indexOf(startAnchor),end=start<0?-1:text.indexOf(endAnchor,start+startAnchor.length);
-  if(start<0||end<0||end<=start)throw new Error(`V0.11.2 patch: ${label} anchors not found`);
+  if(start<0||end<0||end<=start)throw new Error(`V0.11.3 patch: ${label} anchors not found`);
   return text.slice(0,start)+replacement+text.slice(end);
 };
 
@@ -29,13 +29,13 @@ fs.writeFileSync(paths.store,store);
 
 let server=fs.readFileSync(paths.server,'utf8');
 need(server,"url.pathname==='/api/players/nexus-rating'",'Nexus Rating route');
-server=server.replaceAll("version:'0.10.0'","version:'0.11.2'").replaceAll('Camarillo Darts V0.10.0 running','Camarillo Darts V0.11.2 running');
+server=server.replaceAll("version:'0.10.0'","version:'0.11.3'").replaceAll('Camarillo Darts V0.10.0 running','Camarillo Darts V0.11.3 running');
 fs.writeFileSync(paths.server,server);
 
 let player=fs.readFileSync(paths.player,'utf8');
 player=replaceBetween(player,'function ensureRobustnessColumn(){','function savedColumns(){',`function ensureRobustnessColumn(){\n    playerTable=findPlayerTable();if(!playerTable)return;\n    window.CDNexusPlayerMetricsV1001?.refresh?.();\n    window.CDNexusRatingV1000?.refresh?.();\n    applyPlayerFilters();\n  }\n  `,'legacy robustness delegate');
 if(player.includes('function ensureCanonicalRobustnessRuntime(){'))player=replaceBetween(player,'function ensureCanonicalRobustnessRuntime(){','ensureCanonicalRobustnessRuntime();',`function ensureCanonicalRobustnessRuntime(){\n    window.CDNexusPlayerMetricsV1001?.refresh?.();\n    window.CDNexusRatingV1000?.refresh?.();\n  }\n  `,'legacy robustness runtime loader');
-player=player.replaceAll('EXTERNAL PLAYER INTELLIGENCE · V0.9.23','EXTERNAL PLAYER INTELLIGENCE · V0.11.2');
+player=player.replaceAll('EXTERNAL PLAYER INTELLIGENCE · V0.9.23','EXTERNAL PLAYER INTELLIGENCE · V0.11.3');
 fs.writeFileSync(paths.player,player);
 
 let bull=fs.readFileSync(paths.bull,'utf8');
@@ -54,12 +54,12 @@ fs.writeFileSync(paths.ui,ui);
 
 let html=fs.readFileSync(paths.index,'utf8');
 html=html.replace(/<script\s+src=["']\/v0918-table\.js(?:\?[^"']*)?["'][^>]*><\/script>/g,'');
-html=html.replaceAll('/v1000-rating.js?v=0.10.0','/v1000-rating.js?v=0.11.2').replaceAll('/v1000-rating.css?v=0.10.0','/v1000-rating.css?v=0.11.2').replaceAll('V0.10.0','V0.11.2').replaceAll('Camarillo Darts Nexus 0.10.0','Camarillo Darts Nexus 0.11.2');
+html=html.replaceAll('/v1000-rating.js?v=0.10.0','/v1000-rating.js?v=0.11.3').replaceAll('/v1000-rating.css?v=0.10.0','/v1000-rating.css?v=0.11.3').replaceAll('V0.10.0','V0.11.3').replaceAll('Camarillo Darts Nexus 0.10.0','Camarillo Darts Nexus 0.11.3');
 fs.writeFileSync(paths.index,html);
 
 const pkg=JSON.parse(fs.readFileSync(paths.pkg,'utf8'));
-pkg.version='0.11.2';pkg.description='Camarillo Darts Nexus v2 rating with distinct Camarillo local rating and stable semantic player metrics rendering';if(!pkg.scripts)pkg.scripts={};
-for(const cmd of ['node tests/player-metrics-v1001.test.js','node tests/consensus-rating-v1002.test.js','node tests/player-render-v112.test.js'])if(!String(pkg.scripts.check||'').includes(cmd))pkg.scripts.check+=(pkg.scripts.check?' && ':'')+cmd;
+pkg.version='0.11.3';pkg.description='Camarillo Darts Nexus v2 rating with distinct Camarillo local rating and stable semantic player metrics rendering';if(!pkg.scripts)pkg.scripts={};
+for(const cmd of ['node tests/player-metrics-v1001.test.js','node tests/consensus-rating-v1002.test.js','node tests/player-render-v112.test.js','node tests/bullshooter-window-v113.test.js'])if(!String(pkg.scripts.check||'').includes(cmd))pkg.scripts.check+=(pkg.scripts.check?' && ':'')+cmd;
 fs.writeFileSync(paths.pkg,JSON.stringify(pkg,null,2)+'\n');
 
 // Distinguish the local Camarillo tracker from the blended Nexus master rating.
@@ -100,7 +100,7 @@ ui2=ui2.replace(
   "const ratingCell=row.cells[idx.rating],robustCell=row.cells[idx.robust];if(!ratingCell||!robustCell)continue;\n      const entry=entryForRow(identity,names),id=identity.id;",
   "const camarilloCell=row.cells[idx.camarillo],ratingCell=row.cells[idx.rating],robustCell=row.cells[idx.robust];if(!camarilloCell||!ratingCell||!robustCell)continue;\n      const entry=entryForRow(identity,names),id=identity.id;\n      const camarilloSig=entry?`${id}|${entry.playerId||''}|${entry.camarilloRating}|${entry?.sourceWeights?.camarillo||0}|${entry?.evidence?.cd501Games||0}|${entry?.evidence?.cdCricketGames||0}`:`missing|${id}|${identity.pid}`;\n      if(camarilloCell.dataset.v111RatingSig!==camarilloSig||!camarilloCell.querySelector('.camarillo-rating-block')){camarilloCell.innerHTML=camarilloMarkup(entry);camarilloCell.dataset.v111RatingSig=camarilloSig}"
 );
-ui2=ui2.replaceAll('V0.11.0','V0.11.2');
+ui2=ui2.replaceAll('V0.11.0','V0.11.3');
 fs.writeFileSync(paths.ui,ui2);
 
 const cssPath=fs.existsSync('/app/public/v1000-rating.css')?'/app/public/v1000-rating.css':'public/v1000-rating.css';
@@ -113,7 +113,7 @@ for(const testPath of ['tests/player-metrics-v1001.test.js','tests/nexus-rating-
   if(!fs.existsSync(testPath)&&!fs.existsSync('/app/'+testPath))continue;
   const p=fs.existsSync('/app/'+testPath)?'/app/'+testPath:testPath;
   let test=fs.readFileSync(p,'utf8');
-  test=test.replaceAll('0.11.0','0.11.2')
+  test=test.replaceAll('0.11.0','0.11.3').replaceAll('0.11.2','0.11.3')
     .replaceAll("BS10','CAMARILLO','NEXUS RATING","BS10','CAMARILLO RATING','NEXUS RATING")
     .replaceAll("CAMARILLO:'Camarillo Rating'","'CAMARILLO RATING':'Camarillo Rating'")
     .replaceAll("take\\('CAMARILLO'\\)","take\\('CAMARILLO RATING','CAMARILLO'\\)")
@@ -122,8 +122,8 @@ for(const testPath of ['tests/player-metrics-v1001.test.js','tests/nexus-rating-
   fs.writeFileSync(p,test);
 }
 
-fs.writeFileSync(paths.marker,JSON.stringify({version:'0.11.2',source:'camarillo_player_metrics_index',route:'/api/players/nexus-rating',renderer:'v1000-rating',owns:['bs-current','bs50-rating','bs20-rating','bs10-rating','camarillo-rating','nexus-rating','robustness-grade'],identityOrder:['bullshooter-id','player-id','unique-name'],bullshooterIdMatch:'hash-digits-without-trailing-boundary',nameFallback:'primary-name-with-gender-strip',robustnessGrades:{S:'85-100',A:'70-84',B:'50-69',C:'25-49',D:'0-24'},camarilloDefinition:'Camarillo-organized leagues, tournaments and events only',legacyBullshooterWriter:false,legacyRobustnessRuntime:false,legacyRatingWriter:false})+'\n');
-fs.writeFileSync(paths.consensusMarker,JSON.stringify({version:'0.11.2',ratingFormulaVersion:'2.0.0',source:'camarillo_player_metrics_index',rating:'evidence-weighted skill consensus',scaleMax:150,windowWeights:{bs50:.70,bs20:.20,bs10:.10},sourcePriorities:{bullshooter:40,edc:30,toc:20,camarillo:50},agreementBonus:false,duplicateTocFactor:.35,camarilloZeroUntilGames:true})+'\n');
-fs.writeFileSync(paths.tableMarker,JSON.stringify({version:'0.11.2',renderer:'v1000-rating',schema:['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO RATING','NEXUS RATING','ROBUSTNESS','ACTIONS'],repairsLegacyHeaders:['BS30','RATING','CAMARILLO','BS / CD RATING'],statCells:{bsCurrent:4,bs50:5,bs20:6,bs10:7,camarilloRating:8,nexusRating:9,robustness:10,actions:11},rowMatch:['bullshooter-id-loose-hash','player-id','primary-unique-name']})+'\n');
+fs.writeFileSync(paths.marker,JSON.stringify({version:'0.11.3',source:'camarillo_player_metrics_index',route:'/api/players/nexus-rating',renderer:'v1000-rating',owns:['bs-current','bs50-rating','bs20-rating','bs10-rating','camarillo-rating','nexus-rating','robustness-grade'],identityOrder:['bullshooter-id','player-id','unique-name'],bullshooterIdMatch:'hash-digits-without-trailing-boundary',nameFallback:'primary-name-with-gender-strip',robustnessGrades:{S:'85-100',A:'70-84',B:'50-69',C:'25-49',D:'0-24'},camarilloDefinition:'Camarillo-organized leagues, tournaments and events only',legacyBullshooterWriter:false,legacyRobustnessRuntime:false,legacyRatingWriter:false})+'\n');
+fs.writeFileSync(paths.consensusMarker,JSON.stringify({version:'0.11.3',ratingFormulaVersion:'2.0.0',source:'camarillo_player_metrics_index',rating:'evidence-weighted skill consensus',scaleMax:150,windowWeights:{bs50:.70,bs20:.20,bs10:.10},sourcePriorities:{bullshooter:40,edc:30,toc:20,camarillo:50},agreementBonus:false,duplicateTocFactor:.35,camarilloZeroUntilGames:true})+'\n');
+fs.writeFileSync(paths.tableMarker,JSON.stringify({version:'0.11.3',renderer:'v1000-rating',schema:['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO RATING','NEXUS RATING','ROBUSTNESS','ACTIONS'],repairsLegacyHeaders:['BS30','RATING','CAMARILLO','BS / CD RATING'],statCells:{bsCurrent:4,bs50:5,bs20:6,bs10:7,camarilloRating:8,nexusRating:9,robustness:10,actions:11},rowMatch:['bullshooter-id-loose-hash','player-id','primary-unique-name']})+'\n');
 
-console.log('V0.11.2 applied: stable Camarillo Rating header contract, rated BS windows, Nexus and robustness grade rendering.');
+console.log('V0.11.3 applied: stable Camarillo Rating header contract, rated BS windows, Nexus and robustness grade rendering.');

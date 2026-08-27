@@ -176,8 +176,8 @@ COPY tests/nexus-rating-v1000.test.js /app/tests/nexus-rating-v1000.test.js
 COPY deploy/patch-v1000-nexus-rating.mjs /tmp/patch-v1000-nexus-rating.mjs
 RUN node /tmp/patch-v1000-nexus-rating.mjs && rm /tmp/patch-v1000-nexus-rating.mjs
 
-# V0.10.1-V0.11.2: unified player metrics, Nexus v2, Camarillo local rating, robustness grades and header-contract repair.
-COPY tests/player-metrics-v1001.test.js tests/consensus-rating-v1002.test.js tests/player-render-v112.test.js /app/tests/
+# V0.10.1-V0.11.3: unified player metrics, Nexus v2, Camarillo local rating, robustness grades and header-contract repair.
+COPY tests/player-metrics-v1001.test.js tests/consensus-rating-v1002.test.js tests/player-render-v112.test.js tests/bullshooter-window-v113.test.js /app/tests/
 COPY deploy/patch-v1001-unified-player-metrics.mjs /tmp/patch-v1001-unified-player-metrics.mjs
 RUN node /tmp/patch-v1001-unified-player-metrics.mjs && rm /tmp/patch-v1001-unified-player-metrics.mjs
 
