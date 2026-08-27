@@ -176,10 +176,15 @@ COPY tests/nexus-rating-v1000.test.js /app/tests/nexus-rating-v1000.test.js
 COPY deploy/patch-v1000-nexus-rating.mjs /tmp/patch-v1000-nexus-rating.mjs
 RUN node /tmp/patch-v1000-nexus-rating.mjs && rm /tmp/patch-v1000-nexus-rating.mjs
 
-# V0.10.1-V0.10.2: unified player metrics plus consensus-aware 150-point Nexus Rating, kept within the existing final Docker layer budget.
+# V0.10.1-V0.11.1: unified player metrics, Nexus v2, Camarillo local rating and robustness grades.
 COPY tests/player-metrics-v1001.test.js tests/consensus-rating-v1002.test.js /app/tests/
 COPY deploy/patch-v1001-unified-player-metrics.mjs /tmp/patch-v1001-unified-player-metrics.mjs
 RUN node /tmp/patch-v1001-unified-player-metrics.mjs && rm /tmp/patch-v1001-unified-player-metrics.mjs
+
+# V0.11.2: repair the Camarillo Rating header contract so unified row repainting cannot abort.
+COPY tests/player-render-v112.test.js /app/tests/player-render-v112.test.js
+COPY deploy/patch-v112-player-render.mjs /tmp/patch-v112-player-render.mjs
+RUN node /tmp/patch-v112-player-render.mjs && rm /tmp/patch-v112-player-render.mjs
 
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
