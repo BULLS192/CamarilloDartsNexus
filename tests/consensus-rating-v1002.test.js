@@ -25,7 +25,7 @@ assert.equal(dup.independenceFactors.toc,.35);assert.equal(dup.sourceBaseWeights
 
 const pkg=JSON.parse(read('package.json')),html=read('public/index.html'),server=read('server.js'),store=read('src/store.js');
 assert.equal(pkg.version,'0.11.3','package must identify the repaired Nexus v2 release');
-assert.match(html,/v1000-rating\.js\?v=0\.11\.2/);assert.match(html,/v1000-rating\.css\?v=0\.11\.2/);
+assert.match(html,/v1000-rating\.js\?v=0\.11\.3/);assert.match(html,/v1000-rating\.css\?v=0\.11\.3/);
 assert.doesNotMatch(html,/v0918-table\.js/,'obsolete V0.9 robustness runtime must remain retired');
 assert.match(store,/rpc\/camarillo_player_metrics_index/,'Nexus v2 must still use the unified rating+robustness payload');
 assert.match(server,/\/api\/players\/nexus-rating/,'Nexus Rating endpoint must remain available');

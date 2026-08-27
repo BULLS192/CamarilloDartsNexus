@@ -36,7 +36,7 @@ assert.match(ui,/windowMarkup\(b\.last50PPD,b\.last50MPR,'BullShooter Last 50'\)
 assert.match(ui,/function renderBullshooter\(row,idx,player\)/);assert.match(ui,/pidx\.byBs\.get\(id\)/);assert.match(ui,/pidx\.byId\.get\(pid\)/);assert.match(ui,/pidx\.byName\.get\(key\)/);
 assert.ok(ui.includes("match(/#\\s*(\\d{3,})/)"));assert.ok(!ui.includes("match(/#\\s*(\\d{3,})\\b/)"));
 
-assert.doesNotMatch(html,/v0918-table\.js/);assert.match(html,/v1000-rating\.js\?v=0\.11\.2/);assert.match(html,/v1000-rating\.css\?v=0\.11\.2/);
+assert.doesNotMatch(html,/v0918-table\.js/);assert.match(html,/v1000-rating\.js\?v=0\.11\.3/);assert.match(html,/v1000-rating\.css\?v=0\.11\.3/);
 const legacyEnsure=legacyPlayer.match(/function ensureRobustnessColumn\(\)\{([\s\S]*?)\n\s*\}\n\s*function savedColumns/);assert.ok(legacyEnsure);assert.match(legacyEnsure[1],/CDNexusPlayerMetricsV1001/);
 const patchRatings=legacyRating.match(/async function patchRatings\(\)\{([\s\S]*?)\n\s*\}\n\n\s*let timer=null;/);assert.ok(patchRatings);assert.match(patchRatings[1],/CDNexusPlayerMetricsV1001/);
 const patchDisplays=legacyBull.match(/async function patchDisplays\(\)\{([\s\S]*?)\n\s*\}\n\n\s*async function enhanceDiagnostics/);assert.ok(patchDisplays);assert.match(patchDisplays[1],/CDNexusPlayerMetricsV1001/);
