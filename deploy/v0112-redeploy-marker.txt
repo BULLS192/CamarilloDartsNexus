@@ -1,0 +1,2 @@
+V0.11.2 Render auto-deploy retry marker.
+No application behavior changes.
