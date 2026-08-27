@@ -31,7 +31,7 @@ async function refreshConfirmedEdcLinks(dataset){
 }
 async function refreshEdcBackground(){
   if(sourceSyncState.edc.running)return;sourceSyncState.edc.running=true;sourceSyncState.edc.lastStartedAt=new Date().toISOString();sourceSyncState.edc.error=null;
-  try{const d=await loadEdcDataset({force:true});const linked=await refreshConfirmedEdcLinks(d);sourceSyncState.edc.lastRecordCount=d.recordCount;sourceSyncState.edc.lastSuccessAt=new Date().toISOString();sourceSyncState.edc.linkedChecked=linked.checked;sourceSyncState.edc.linkedUpdated=linked.updated;sourceSyncState.edc.linkedUnresolved=linked.unresolved;console.log('[EDC] background refresh complete: '+d.recordCount+' records; '+linked.updated+'/'+linked.checked+' confirmed links updated')}
+  try{const d=await loadEdcDataset({force:false});const linked=await refreshConfirmedEdcLinks(d);sourceSyncState.edc.lastRecordCount=d.recordCount;sourceSyncState.edc.lastSuccessAt=new Date().toISOString();sourceSyncState.edc.linkedChecked=linked.checked;sourceSyncState.edc.linkedUpdated=linked.updated;sourceSyncState.edc.linkedUnresolved=linked.unresolved;console.log('[EDC] background refresh complete: '+d.recordCount+' records; '+linked.updated+'/'+linked.checked+' confirmed links updated')}
   catch(error){sourceSyncState.edc.error=error.message||String(error);console.error('[EDC] background refresh failed:',sourceSyncState.edc.error)}
   finally{sourceSyncState.edc.running=false;sourceSyncState.edc.lastFinishedAt=new Date().toISOString()}
 }`;
