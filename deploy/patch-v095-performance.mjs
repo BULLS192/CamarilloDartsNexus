@@ -2,16 +2,33 @@ import fs from 'node:fs';
 
 const serverPath=fs.existsSync('/app/server.js')?'/app/server.js':'server.js';
 const tocPath=fs.existsSync('/app/src/dartstoc.js')?'/app/src/dartstoc.js':'src/dartstoc-v090.js';
+const edcPath=fs.existsSync('/app/src/edc.js')?'/app/src/edc.js':'src/edc.js';
 const indexPath=fs.existsSync('/app/public/index.html')?'/app/public/index.html':'public/index.html';
 const pkgPath=fs.existsSync('/app/package.json')?'/app/package.json':'package.json';
 
 let server=fs.readFileSync(serverPath,'utf8');
 let toc=fs.readFileSync(tocPath,'utf8');
+let edc=fs.readFileSync(edcPath,'utf8');
 
 const replaceRequired=(text,from,to,label)=>{
   if(!text.includes(from))throw new Error(`V0.9.5 performance patch: ${label} anchor not found`);
   return text.replace(from,to);
 };
+
+server=replaceRequired(
+  server,
+  "const EDC_BACKGROUND_SYNC_MS=Math.max(5*60_000,Number(process.env.EDC_BACKGROUND_SYNC_MS)||10*60_000);",
+  "const EDC_BACKGROUND_SYNC_MS=Math.max(60*60_000,Number(process.env.EDC_BACKGROUND_SYNC_MS)||24*60*60_000);",
+  'EDC schedule constants'
+);
+
+edc=replaceRequired(
+  edc,
+  "const CACHE_MS=Math.max(60_000,Number(process.env.EDC_CACHE_MS)||10*60_000);",
+  "const CACHE_MS=Math.max(60*60_000,Number(process.env.EDC_CACHE_MS)||24*60*60_000);",
+  'EDC source cache duration'
+);
+fs.writeFileSync(edcPath,edc);
 
 server=replaceRequired(
   server,
@@ -48,11 +65,10 @@ const startRe=/function startBackgroundSourceSync\(\)\{[\s\S]*?\n\}\nasync funct
 if(!startRe.test(server))throw new Error('V0.9.5 performance patch: startBackgroundSourceSync block not found');
 server=server.replace(startRe,`function startBackgroundSourceSync(){
   sourceSyncState.startedAt=new Date().toISOString();
-  const edcStartup=setTimeout(()=>void refreshEdcBackground(),2_000);edcStartup.unref?.();
   const tocStartup=setTimeout(()=>void refreshTocBackground(),TOC_BACKGROUND_CHECK_MS);tocStartup.unref?.();
   const edcTimer=setInterval(()=>void refreshEdcBackground(),EDC_BACKGROUND_SYNC_MS);edcTimer.unref?.();
   const tocCheckTimer=setInterval(()=>void refreshTocBackground(),TOC_BACKGROUND_CHECK_MS);tocCheckTimer.unref?.();
-  console.log('[Sources] background sync active: EDC '+Math.round(EDC_BACKGROUND_SYNC_MS/60_000)+'m; TOC freshness '+Math.round(TOC_BACKGROUND_SYNC_MS/3_600_000)+'h; idle gate '+Math.round(TOC_IDLE_BEFORE_SYNC_MS/60_000)+'m');
+  console.log('[Sources] background sync active: EDC '+Math.round(EDC_BACKGROUND_SYNC_MS/3_600_000)+'h with no startup download; TOC freshness '+Math.round(TOC_BACKGROUND_SYNC_MS/3_600_000)+'h; idle gate '+Math.round(TOC_IDLE_BEFORE_SYNC_MS/60_000)+'m');
 }
 async function sourceSyncStatus(){`);
 
