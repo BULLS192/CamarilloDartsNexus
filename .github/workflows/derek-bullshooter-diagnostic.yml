@@ -1,0 +1,33 @@
+name: Derek BullShooter Window Diagnostic
+on:
+  push:
+    branches: [diagnostic/derek-bullshooter-windows]
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Derek recent BullShooter windows
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request
+          base='https://www.bullshooter.live/search/fetch_games.php?player_id=209797&game_type={}&page=1&per_page=50'
+          for gt in ['x01','cricket']:
+              url=base.format(gt)
+              req=urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 CamarilloDarts/0.11.3','Accept':'application/json,text/plain,*/*'})
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as r:
+                      data=json.load(r)
+                  games=data.get('games') or []
+                  vals=[]
+                  for g in games:
+                      try: vals.append(float(g.get('stat')))
+                      except: pass
+                  print(gt, 'success=', data.get('success'), 'rows=',len(games),'valid=',len(vals))
+                  for n in [10,20,50]:
+                      v=vals[:n]
+                      print(gt, n, round(sum(v)/len(v),4) if v else None, 'sample=',len(v))
+                  print('preview=', vals[:10])
+              except Exception as e:
+                  print(gt,'ERROR',repr(e))
+          PY
