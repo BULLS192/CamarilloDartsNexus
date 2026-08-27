@@ -1,4 +1,5 @@
 name: V0.11.3 Contract Tests and Validate
+# Final validation after built-image test correction.
 on:
   push:
     branches: [fix/v0113-bullshooter-window-reliability]
