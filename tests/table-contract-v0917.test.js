@@ -14,7 +14,7 @@ if(html.includes('/v1000-rating.js')){
     if(String(pkg.version).startsWith('0.11.')){
       assert.match(unified,/const camarillo=take\('CAMARILLO RATING','CAMARILLO'\)/,'Camarillo source cell must preserve both current and legacy header names');
       assert.match(unified,/const rating=take\('NEXUS RATING','BS \/ CD RATING','RATING'\)/,'Nexus must absorb legacy blended rating headers without consuming Camarillo');
-      assert.match(unified,/const EXPECTED=\['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO RATING','NEXUS RATING','ROBUSTNESS','ACTIONS'\]/,'V0.11.2 must use separate Camarillo Rating and Nexus columns');
+      assert.match(unified,/const EXPECTED=\['PLAYER','CONTACT','HOME','BULLSHOOTER','BS CURRENT','BS50','BS20','BS10','CAMARILLO RATING','NEXUS RATING','ROBUSTNESS','ACTIONS'\]/,'V0.11.3 must use separate Camarillo Rating and Nexus columns');
     }
   }
   assert.match(unified,/headerIndex\(t,'CAMARILLO RATING','CAMARILLO'\)/,'unified renderer must resolve the visible Camarillo Rating header semantically');

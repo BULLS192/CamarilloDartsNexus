@@ -24,10 +24,10 @@ const dup=computeNexusRating(joshua,{tocConfirmed:true,toc:{ppd:35.7,mpr:4.36,pp
 assert.equal(dup.independenceFactors.toc,.35);assert.equal(dup.sourceBaseWeights.toc,5.3);assert.equal(dup.agreementFactors.toc,1);
 
 const pkg=JSON.parse(read('package.json')),html=read('public/index.html'),server=read('server.js'),store=read('src/store.js');
-assert.equal(pkg.version,'0.11.2','package must identify the repaired Nexus v2 release');
+assert.equal(pkg.version,'0.11.3','package must identify the repaired Nexus v2 release');
 assert.match(html,/v1000-rating\.js\?v=0\.11\.2/);assert.match(html,/v1000-rating\.css\?v=0\.11\.2/);
 assert.doesNotMatch(html,/v0918-table\.js/,'obsolete V0.9 robustness runtime must remain retired');
 assert.match(store,/rpc\/camarillo_player_metrics_index/,'Nexus v2 must still use the unified rating+robustness payload');
 assert.match(server,/\/api\/players\/nexus-rating/,'Nexus Rating endpoint must remain available');
-const marker=JSON.parse(read('.v1002-consensus-rating-applied'));assert.equal(marker.version,'0.11.2');assert.equal(marker.ratingFormulaVersion,'2.0.0');assert.equal(marker.agreementBonus,false);assert.deepEqual(marker.windowWeights,{bs50:.7,bs20:.2,bs10:.1});assert.deepEqual(marker.sourcePriorities,{bullshooter:40,edc:30,toc:20,camarillo:50});assert.equal(marker.camarilloZeroUntilGames,true);assert.equal(marker.duplicateTocFactor,.35);
-console.log('V0.11.2 consensus deployment contract passed: evidence affects source influence, agreement does not inflate skill, and Camarillo begins at zero.');
+const marker=JSON.parse(read('.v1002-consensus-rating-applied'));assert.equal(marker.version,'0.11.3');assert.equal(marker.ratingFormulaVersion,'2.0.0');assert.equal(marker.agreementBonus,false);assert.deepEqual(marker.windowWeights,{bs50:.7,bs20:.2,bs10:.1});assert.deepEqual(marker.sourcePriorities,{bullshooter:40,edc:30,toc:20,camarillo:50});assert.equal(marker.camarilloZeroUntilGames,true);assert.equal(marker.duplicateTocFactor,.35);
+console.log('V0.11.3 consensus deployment contract passed: evidence affects source influence, agreement does not inflate skill, and Camarillo begins at zero.');
