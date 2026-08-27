@@ -22,7 +22,11 @@ jobs:
             'tests/table-contract-v0917.test.js'
           ]:
               p=Path(name)
-              if p.exists(): p.write_text(p.read_text().replace('0.11.2','0.11.3').replace('V0.11.2','V0.11.3'))
+              if not p.exists(): continue
+              s=p.read_text()
+              s=s.replace('0.11.2','0.11.3').replace('V0.11.2','V0.11.3')
+              s=s.replace(r'0\.11\.2',r'0\.11\.3')
+              p.write_text(s)
           PY
       - name: Commit test contract updates
         shell: bash
@@ -30,7 +34,7 @@ jobs:
           git config user.name "BULLS192"
           git config user.email "kevinbullsyap@gmail.com"
           git add tests/nexus-rating-v1000.test.js tests/player-metrics-v1001.test.js tests/consensus-rating-v1002.test.js tests/table-contract-v0917.test.js
-          git commit -m "Align V0.11.3 contract tests" || true
+          git commit -m "Fix escaped V0.11.3 contract assertions" || true
           git push
       - name: Build exact Render Docker image
         run: docker build --progress=plain -t camarillo-v0113 .
