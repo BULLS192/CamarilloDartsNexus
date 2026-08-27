@@ -48,6 +48,6 @@ const ui=read('public/v1000-rating.js'),server=read('server.js'),store=read('src
 assert.match(ui,/\/api\/players\/nexus-rating/);assert.match(ui,/BS10','CAMARILLO RATING','NEXUS RATING','ROBUSTNESS','ACTIONS'/);assert.match(ui,/camarilloMarkup/);assert.match(ui,/robustnessGrade/);assert.match(ui,/windowMarkup\(b\.last50PPD,b\.last50MPR/);assert.match(ui,/Rating \$\{fmt\(rating,1\)\} =/);assert.match(ui,/byBullshooterId/);assert.doesNotMatch(ui,/\/150/);assert.doesNotMatch(ui,/subtree:true/);
 assert.match(store,/export async function getNexusRatingIndexSql\(\)/);assert.ok(/rpc\/camarillo_player_metrics_index/.test(store)||/rpc\/camarillo_nexus_rating_index/.test(store));
 assert.match(server,/\/api\/players\/nexus-rating[\s\S]{0,200}getNexusRatingIndexSql/);
-assert.match(html,/v1000-rating\.js\?v=0\.11\.2/);assert.match(html,/v1000-rating\.css\?v=0\.11\.2/);
-assert.equal(pkg.version,'0.11.2');
-console.log('V0.11.2 Nexus v2 checks passed: stable BS50-led form, distinct Camarillo source tracking, evidence-weighted external sources, and no agreement inflation.');
+assert.match(html,/v1000-rating\.js\?v=0\.11\.3/);assert.match(html,/v1000-rating\.css\?v=0\.11\.3/);
+assert.equal(pkg.version,'0.11.3');
+console.log('V0.11.3 Nexus v2 checks passed: stable BS50-led form, distinct Camarillo source tracking, evidence-weighted external sources, and no agreement inflation.');

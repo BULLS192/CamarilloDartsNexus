@@ -29,13 +29,13 @@ assert.match(ui,/ratingCell\.innerHTML=ratingMarkup\(entry\)/,'Nexus rating must
 assert.match(ui,/robustCell\.innerHTML=robustnessMarkup\(r\)/,'Robustness grade must repaint');
 assert.match(ui,/if\(idx\.camarillo<0\|\|idx\.rating<0\|\|idx\.robust<0\|\|idx\.bs<0\)return;/,'renderer guard must remain explicit after semantic lookup');
 
-assert.match(html,/v1000-rating\.js\?v=0\.11\.2/,'browser must receive a fresh rating runtime cache key');
-assert.match(html,/v1000-rating\.css\?v=0\.11\.2/,'browser must receive a fresh rating CSS cache key');
-assert.equal(pkg.version,'0.11.2');
-assert.equal(marker.version,'0.11.2');
+assert.match(html,/v1000-rating\.js\?v=0\.11\.3/,'browser must receive a fresh rating runtime cache key');
+assert.match(html,/v1000-rating\.css\?v=0\.11\.3/,'browser must receive a fresh rating CSS cache key');
+assert.equal(pkg.version,'0.11.3');
+assert.equal(marker.version,'0.11.3');
 assert.deepEqual(marker.owns,['bs-current','bs50-rating','bs20-rating','bs10-rating','camarillo-rating','nexus-rating','robustness-grade']);
-assert.equal(tableMarker.version,'0.11.2');
+assert.equal(tableMarker.version,'0.11.3');
 assert.deepEqual(tableMarker.schema,canonical);
 assert.deepEqual(tableMarker.statCells,{bsCurrent:4,bs50:5,bs20:6,bs10:7,camarilloRating:8,nexusRating:9,robustness:10,actions:11});
 
-console.log('V0.11.2 player renderer regression passed: Camarillo Rating header resolves and all unified metric cells can repaint.');
+console.log('V0.11.3 player renderer regression passed: Camarillo Rating header resolves and all unified metric cells can repaint.');
