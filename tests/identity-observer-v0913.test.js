@@ -7,7 +7,7 @@ assert.doesNotMatch(src,/for\(const b of host\.querySelectorAll\('\.toc-use'\)\)
 assert.match(src,/new MutationObserver\(augmentToc\)/,'RAW TOC observer remains supported');
 
 const toc=fs.readFileSync(`${root}/src/dartstoc.js`,'utf8');
-assert.match(toc,/const TOC_SYNC_STRATEGY='prefix-shards-v2-progressive'/,'TOC sync must use progressive deterministic prefix shards');
+assert.match(toc,/const TOC_SYNC_STRATEGY='prefix-shards-v3-resumable'/,'TOC sync must use resumable deterministic prefix shards');
 assert.match(toc,/export async function crawlBestKnownSharded/,'failure-isolated sharded crawler must be installed');
 assert.match(toc,/async function persistTocRowsIncremental/,'completed shard records must have an immediate persistence path');
 assert.match(toc,/const unique=new Map\(\)/,'incremental TOC persistence must deduplicate every write set');
@@ -25,5 +25,9 @@ assert.match(toc,/remoteLease:true/,'a live remote lease must prevent overlappin
 assert.match(toc,/Stale TOC sync lease expired; superseded by a new worker\./,'stale remote runs must be explicitly closed before replacement');
 assert.match(toc,/persistedRows:crawl\.persistedRows\|\|0/,'sync audit metadata must expose progressive persistence');
 assert.match(toc,/failedShards:crawl\.failedShards\|\|\[\]/,'sync audit metadata must expose any missing shards');
+assert.match(toc,/resumeQueue=null/,'crawler must accept a durable resume queue');
+assert.match(toc,/queueSnapshot:queue/,'crawler checkpoints must expose the unfinished shard queue');
+assert.match(toc,/resumeQueue:Array\.isArray\(p\.queueSnapshot\)/,'sync checkpoints must persist the unfinished shard queue');
+assert.match(toc,/crawlBestKnownSharded\(\{resumeQueue,onProgress:/,'replacement workers must resume from the persisted queue');
 
-console.log('V0.9.13 identity safety + progressive TOC persistence/lease/dedupe checks passed');
+console.log('V0.9.13 identity safety + progressive TOC persistence/lease/dedupe/resume checks passed');
