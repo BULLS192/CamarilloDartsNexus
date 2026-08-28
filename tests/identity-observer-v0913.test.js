@@ -7,7 +7,7 @@ assert.doesNotMatch(src,/for\(const b of host\.querySelectorAll\('\.toc-use'\)\)
 assert.match(src,/new MutationObserver\(augmentToc\)/,'RAW TOC observer remains supported');
 
 const toc=fs.readFileSync(`${root}/src/dartstoc.js`,'utf8');
-assert.match(toc,/const TOC_SYNC_STRATEGY='prefix-shards-v3-resumable'/,'TOC sync must use resumable deterministic prefix shards');
+assert.match(toc,/const TOC_SYNC_STRATEGY='prefix-shards-v4-atomic-resumable'/,'TOC sync must use atomic resumable deterministic prefix shards');
 assert.match(toc,/export async function crawlBestKnownSharded/,'failure-isolated sharded crawler must be installed');
 assert.match(toc,/async function persistTocRowsIncremental/,'completed shard records must have an immediate persistence path');
 assert.match(toc,/const unique=new Map\(\)/,'incremental TOC persistence must deduplicate every write set');
@@ -20,14 +20,19 @@ assert.match(toc,/failedShards\.push\(\{prefix:shard\.prefix,error:/,'individual
 assert.match(toc,/complete:failedShards\.length===0/,'TOC run is complete only when every shard succeeds');
 assert.match(toc,/\.filter\(r=>r\.playerName!=='\.\.\.'\)/,'pager ellipsis must never be persisted as a player');
 assert.match(toc,/lastProgressAt:now\(\)/,'running checkpoints must carry a remote heartbeat');
-assert.match(toc,/TOC_REMOTE_LEASE_MS/,'restart-safe TOC remote lease must be configured');
-assert.match(toc,/remoteLease:true/,'a live remote lease must prevent overlapping crawls');
-assert.match(toc,/Stale TOC sync lease expired; superseded by a new worker\./,'stale remote runs must be explicitly closed before replacement');
+assert.match(toc,/rpc\/camarillo_try_acquire_sync_lease/,'TOC worker must acquire and renew the Supabase atomic lease');
+assert.match(toc,/rpc\/camarillo_release_sync_lease/,'TOC worker must release the Supabase atomic lease');
+assert.match(toc,/if\(!\(await acquireTocAtomicLease\(runId\)\)\)throw new Error/,'every progress checkpoint must renew or lose the atomic lease');
+assert.match(toc,/atomicLease:true/,'a competing remote worker must be rejected by the atomic lease');
+assert.match(toc,/Stale TOC worker replaced after atomic lease expiry\./,'orphaned running audit rows must be closed after lease expiry');
 assert.match(toc,/persistedRows:crawl\.persistedRows\|\|0/,'sync audit metadata must expose progressive persistence');
 assert.match(toc,/failedShards:crawl\.failedShards\|\|\[\]/,'sync audit metadata must expose any missing shards');
 assert.match(toc,/resumeQueue=null/,'crawler must accept a durable resume queue');
 assert.match(toc,/queueSnapshot:queue/,'crawler checkpoints must expose the unfinished shard queue');
 assert.match(toc,/resumeQueue:Array\.isArray\(p\.queueSnapshot\)/,'sync checkpoints must persist the unfinished shard queue');
-assert.match(toc,/crawlBestKnownSharded\(\{resumeQueue,onProgress:/,'replacement workers must resume from the persisted queue');
+assert.match(toc,/async function runSync\(runId,resumeQueue=null\)/,'runSync must receive the prior durable queue before it writes the new audit run');
+assert.match(toc,/const resumeQueue=Array\.isArray\(previous\?\.metadata\?\.resumeQueue\)/,'startup must load the previous durable queue before creating the replacement run');
+assert.match(toc,/runSync\(runId,resumeQueue\)\.finally/,'replacement worker must receive the saved queue and release its lease when finished');
+assert.doesNotMatch(toc,/const previousRun=await lastRun\(\)/,'runSync must not re-read lastRun after persisting itself and accidentally discard the resume queue');
 
-console.log('V0.9.13 identity safety + progressive TOC persistence/lease/dedupe/resume checks passed');
+console.log('V0.9.13 identity safety + progressive TOC persistence/dedupe/atomic-lease/resume checks passed');
