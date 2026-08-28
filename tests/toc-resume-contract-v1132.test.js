@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root=fs.existsSync('/app/src/dartstoc.js')?'/app':process.cwd();
+const toc=fs.readFileSync(`${root}/src/dartstoc.js`,'utf8');
+assert.match(toc,/prefix-shards-v3-resumable/);
+assert.match(toc,/resumeQueue=null/);
+assert.match(toc,/queueSnapshot:queue/);
+assert.match(toc,/resumeQueue:Array\.isArray\(p\.queueSnapshot\)/);
+assert.match(toc,/crawlBestKnownSharded\(\{resumeQueue,onProgress:/);
+console.log('TOC resumable queue contract passed');
