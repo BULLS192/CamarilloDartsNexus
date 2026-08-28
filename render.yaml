@@ -22,8 +22,8 @@ services:
       - key: TOC_BACKGROUND_SYNC_MS
         value: "86400000"
       - key: TOC_BACKGROUND_CHECK_MS
-        value: "300000"
+        value: "60000"
       - key: TOC_IDLE_BEFORE_SYNC_MS
-        value: "300000"
+        value: "60000"
       - key: TOC_PAGE_DELAY_MS
-        value: "2000"
+        value: "250"
