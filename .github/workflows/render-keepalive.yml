@@ -1,0 +1,17 @@
+name: Keep Camarillo Darts Render Awake
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Wake and keep Render service active
+        run: |
+          curl --fail --show-error --silent \
+            --retry 3 --retry-delay 5 --max-time 60 \
+            https://camarillo-darts.onrender.com/health
