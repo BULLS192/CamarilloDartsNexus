@@ -29,10 +29,16 @@ assert.match(toc,/persistedRows:crawl\.persistedRows\|\|0/,'sync audit metadata 
 assert.match(toc,/failedShards:crawl\.failedShards\|\|\[\]/,'sync audit metadata must expose any missing shards');
 assert.match(toc,/resumeQueue=null/,'crawler must accept a durable resume queue');
 assert.match(toc,/queueSnapshot:queue/,'crawler checkpoints must expose the unfinished shard queue');
-assert.match(toc,/resumeQueue:Array\.isArray\(p\.queueSnapshot\)/,'sync checkpoints must persist the unfinished shard queue');
+assert.match(toc,/resumeQueue:Array\.isArray\(p\.queueSnapshot\)/,'audit checkpoints must retain a small resume queue sample');
 assert.match(toc,/async function runSync\(runId,resumeQueue=null\)/,'runSync must receive the prior durable queue before it writes the new audit run');
-assert.match(toc,/const resumeQueue=Array\.isArray\(previous\?\.metadata\?\.resumeQueue\)/,'startup must load the previous durable queue before creating the replacement run');
-assert.match(toc,/runSync\(runId,resumeQueue\)\.finally/,'replacement worker must receive the saved queue and release its lease when finished');
+assert.match(toc,/(?:const|let) resumeQueue=Array\.isArray\(previous\?\.metadata\?\.resumeQueue\)/,'startup must inspect legacy run metadata for backward-compatible resume');
+assert.match(toc,/runSync\(runId,resumeQueue\)\.finally/,'replacement worker must receive the selected queue and release its lease when finished');
 assert.doesNotMatch(toc,/const previousRun=await lastRun\(\)/,'runSync must not re-read lastRun after persisting itself and accidentally discard the resume queue');
+assert.match(toc,/camarillo_toc_sync_checkpoint/,'TOC must use a canonical durable checkpoint row');
+assert.match(toc,/loadTocDurableCheckpoint/,'startup must load the canonical durable checkpoint');
+assert.match(toc,/saveTocDurableCheckpoint/,'crawler must periodically persist the canonical durable checkpoint');
+assert.match(toc,/TOC_DURABLE_CHECKPOINT_EVERY/,'durable checkpoint cadence must be bounded');
+assert.match(toc,/slice\(0,3\)/,'audit rows must not duplicate the full 60k+ shard queue');
+assert.match(toc,/resumeQueue\.length<1000/,'tiny root/sample queues must not override the deep canonical checkpoint');
 
-console.log('V0.9.13 identity safety + progressive TOC persistence/dedupe/atomic-lease/resume checks passed');
+console.log('V0.9.13 identity safety + progressive TOC persistence/dedupe/atomic-lease/durable-resume checks passed');
