@@ -6,7 +6,54 @@ assert.match(src,/if\(b\.classList\.contains\('identity-raw-link'\)\)continue/,'
 assert.doesNotMatch(src,/for\(const b of host\.querySelectorAll\('\.toc-use'\)\)\{b\.textContent=/,'must not unconditionally rewrite observed TOC button children');
 assert.match(src,/new MutationObserver\(augmentToc\)/,'RAW TOC observer remains supported');
 
-const toc=fs.readFileSync(`${root}/src/dartstoc.js`,'utf8');
+// V1.13.4 production finalizer. The v0914 build patch installs the durable queue
+// structure; finalize its I/O through narrow SECURITY DEFINER RPCs so it does not
+// depend on a service-role secret being present in the Render process. This script
+// runs during the Docker build before the image is committed, so the transformed
+// src/dartstoc.js is the production artifact that npm start executes.
+const tocPath=`${root}/src/dartstoc.js`;
+let builtToc=fs.readFileSync(tocPath,'utf8');
+const helperRe=/const TOC_DURABLE_CHECKPOINT_SOURCE='dartstoc-best-known';[\s\S]*?\n\nexport async function startTocSync\(\)\{/;
+assert.match(builtToc,helperRe,'durable checkpoint helper block must exist before finalization');
+const rpcHelpers=`const TOC_DURABLE_CHECKPOINT_SOURCE='dartstoc-best-known';
+const TOC_DURABLE_CHECKPOINT_EVERY=Math.max(100,Math.min(5000,Number(process.env.TOC_DURABLE_CHECKPOINT_EVERY)||500));
+
+function compactTocResumeQueue(queue=[]){
+  return (Array.isArray(queue)?queue:[]).map(s=>String(typeof s==='string'?s:(s?.prefix??''))).filter(Boolean);
+}
+
+async function loadTocDurableCheckpoint(){
+  if(!REMOTE)return null;
+  const {data}=await remoteFetch('rpc/camarillo_get_toc_sync_checkpoint',{method:'POST',body:{p_source:TOC_DURABLE_CHECKPOINT_SOURCE}});
+  const row=Array.isArray(data)?data[0]||null:data;
+  const resumeQueue=Array.isArray(row?.resume_queue)?row.resume_queue:[];
+  return row&&resumeQueue.length?{...row,resumeQueue}:null;
+}
+
+async function saveTocDurableCheckpoint(owner,p={},force=false){
+  if(!REMOTE)return false;
+  const page=Number(p.page||p.shardsProcessed||0);
+  if(!force&&page!==1&&page%TOC_DURABLE_CHECKPOINT_EVERY!==0)return false;
+  const resumeQueue=compactTocResumeQueue(p.queueSnapshot||p.resumeQueue||[]);
+  const {data}=await remoteFetch('rpc/camarillo_save_toc_sync_checkpoint',{method:'POST',body:{
+    p_source:TOC_DURABLE_CHECKPOINT_SOURCE,p_owner:String(owner||''),p_strategy:TOC_SYNC_STRATEGY,p_resume_queue:resumeQueue,
+    p_pages:page,p_rows_seen:Number(p.totalSeen||p.rowsSeen||0),p_unique_rows:Number(p.uniqueRows||0),p_persisted_rows:Number(p.persistedRows||0),
+    p_queued_shards:resumeQueue.length,p_failed_shards:Number(p.failedShards||0)
+  }});
+  return data===true;
+}
+
+async function clearTocDurableCheckpoint(owner){
+  if(!REMOTE)return false;
+  const {data}=await remoteFetch('rpc/camarillo_clear_toc_sync_checkpoint',{method:'POST',body:{p_source:TOC_DURABLE_CHECKPOINT_SOURCE,p_owner:String(owner||'')}});
+  return data===true;
+}
+
+export async function startTocSync(){`;
+builtToc=builtToc.replace(helperRe,rpcHelpers);
+fs.writeFileSync(tocPath,builtToc);
+
+const toc=fs.readFileSync(tocPath,'utf8');
 assert.match(toc,/const TOC_SYNC_STRATEGY='prefix-shards-v4-atomic-resumable'/,'TOC sync must use atomic resumable deterministic prefix shards');
 assert.match(toc,/export async function crawlBestKnownSharded/,'failure-isolated sharded crawler must be installed');
 assert.match(toc,/async function persistTocRowsIncremental/,'completed shard records must have an immediate persistence path');
@@ -22,7 +69,7 @@ assert.match(toc,/\.filter\(r=>r\.playerName!=='\.\.\.'\)/,'pager ellipsis must 
 assert.match(toc,/lastProgressAt:now\(\)/,'running checkpoints must carry a remote heartbeat');
 assert.match(toc,/rpc\/camarillo_try_acquire_sync_lease/,'TOC worker must acquire and renew the Supabase atomic lease');
 assert.match(toc,/rpc\/camarillo_release_sync_lease/,'TOC worker must release the Supabase atomic lease');
-assert.match(toc,/if\(!\(await acquireTocAtomicLease\(runId\)\)\)throw new Error/,'every progress checkpoint must renew or lose the atomic lease');
+assert.match(toc,/if\(!\(await acquireTocAtomicLease\(runId\)\)\)throw new Error/,'progress checkpoints must verify lease ownership');
 assert.match(toc,/atomicLease:true/,'a competing remote worker must be rejected by the atomic lease');
 assert.match(toc,/Stale TOC worker replaced after atomic lease expiry\./,'orphaned running audit rows must be closed after lease expiry');
 assert.match(toc,/persistedRows:crawl\.persistedRows\|\|0/,'sync audit metadata must expose progressive persistence');
@@ -34,11 +81,11 @@ assert.match(toc,/async function runSync\(runId,resumeQueue=null\)/,'runSync mus
 assert.match(toc,/(?:const|let) resumeQueue=Array\.isArray\(previous\?\.metadata\?\.resumeQueue\)/,'startup must inspect legacy run metadata for backward-compatible resume');
 assert.match(toc,/runSync\(runId,resumeQueue\)\.finally/,'replacement worker must receive the selected queue and release its lease when finished');
 assert.doesNotMatch(toc,/const previousRun=await lastRun\(\)/,'runSync must not re-read lastRun after persisting itself and accidentally discard the resume queue');
-assert.match(toc,/camarillo_toc_sync_checkpoint/,'TOC must use a canonical durable checkpoint row');
-assert.match(toc,/loadTocDurableCheckpoint/,'startup must load the canonical durable checkpoint');
-assert.match(toc,/saveTocDurableCheckpoint/,'crawler must periodically persist the canonical durable checkpoint');
+assert.match(toc,/rpc\/camarillo_get_toc_sync_checkpoint/,'startup must load the canonical durable checkpoint through RPC');
+assert.match(toc,/rpc\/camarillo_save_toc_sync_checkpoint/,'crawler must persist canonical durable checkpoints through RPC');
+assert.match(toc,/rpc\/camarillo_clear_toc_sync_checkpoint/,'completed crawls must clear the canonical checkpoint through RPC');
 assert.match(toc,/TOC_DURABLE_CHECKPOINT_EVERY/,'durable checkpoint cadence must be bounded');
 assert.match(toc,/slice\(0,3\)/,'audit rows must not duplicate the full 60k+ shard queue');
 assert.match(toc,/resumeQueue\.length<1000/,'tiny root/sample queues must not override the deep canonical checkpoint');
 
-console.log('V0.9.13 identity safety + progressive TOC persistence/dedupe/atomic-lease/durable-resume checks passed');
+console.log('V0.9.13 identity safety + progressive TOC persistence/dedupe/atomic-lease/durable-RPC-resume checks passed');
