@@ -27,3 +27,9 @@ services:
         value: "60000"
       - key: TOC_PAGE_DELAY_MS
         value: "250"
+      - key: TOC_DURABLE_CHECKPOINT_EVERY
+        value: "100"
+      - key: TOC_LEASE_RENEW_MS
+        value: "60000"
+      - key: TOC_ATOMIC_LEASE_SECONDS
+        value: "120"
