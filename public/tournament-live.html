@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NEXUS Live Tournament</title>
+  <link rel="stylesheet" href="/tournament-director.css?v=0.12.1" />
+  <link rel="stylesheet" href="/tournament-ops.css?v=0.12.1" />
+</head>
+<body class="td-body td-live-body">
+  <header class="td-topbar td-live-topbar">
+    <div><div class="td-kicker">Camarillo Darts Nexus</div><h1 id="liveName">Live Tournament</h1></div>
+    <div class="td-live-status"><span class="td-live-dot"></span><span id="liveStatus">Loading…</span></div>
+  </header>
+  <main class="td-live-shell">
+    <section class="td-live-summary">
+      <div><span>Status</span><b id="liveState">—</b></div>
+      <div><span>Entrants</span><b id="liveEntrants">—</b></div>
+      <div><span>Boards</span><b id="liveBoards">—</b></div>
+      <div><span>Champion</span><b id="liveChampion">—</b></div>
+    </section>
+    <section>
+      <h2>On Boards</h2>
+      <div id="liveBoardGrid" class="td-board-grid"></div>
+    </section>
+    <section>
+      <h2>Bracket</h2>
+      <div id="liveBracket" class="td-bracket"></div>
+    </section>
+  </main>
+  <template id="liveMatchTemplate">
+    <article class="td-match">
+      <div class="td-match-head"><span class="td-match-number"></span><span class="td-match-board"></span><span class="td-match-round"></span></div>
+      <div class="td-slot td-slot-a"></div>
+      <div class="td-slot td-slot-b"></div>
+      <div class="td-match-score"></div>
+    </article>
+  </template>
+  <script type="module" src="/tournament-live.js?v=0.12.1"></script>
+</body>
+</html>
