@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NEXUS Tournament Director</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tournament-director.css?v=0.12.0" />
+</head>
+<body class="td-body">
+  <header class="td-topbar">
+    <a class="td-brand" href="/">← NEXUS</a>
+    <div><div class="td-kicker">Camarillo Darts Nexus</div><h1>Tournament Director</h1></div>
+    <div class="td-actions"><button id="tdPrint" type="button">Print</button><button id="tdUndo" type="button" disabled>Undo Last</button></div>
+  </header>
+  <main class="td-shell">
+    <aside class="td-builder" aria-label="Tournament setup">
+      <h2>Create Tournament</h2>
+      <label>Tournament Name<input id="tdName" value="NEXUS Tournament" /></label>
+      <div class="td-grid2">
+        <label>Format<select id="tdFormat"><option value="double">Double Elimination</option><option value="single">Single Elimination</option></select></label>
+        <label>Entry Method<select id="tdSeeding"><option value="seeded">Seeded</option><option value="random">Blind Draw / Randomized</option></select></label>
+      </div>
+      <label>Participants <span class="td-muted">2–128 single; 3–128 double</span>
+        <textarea id="tdParticipants" rows="14" spellcheck="false">Player 1
+Player 2
+Player 3
+Player 4
+Player 5
+Player 6
+Player 7
+Player 8</textarea>
+      </label>
+      <div class="td-button-row"><button id="tdLoadNexus" type="button">Load NEXUS Players</button><button id="tdShuffle" type="button">Shuffle Names</button></div>
+      <label class="td-check"><input id="tdShowSeeds" type="checkbox" checked /> Show seeds</label>
+      <label class="td-check"><input id="tdShowReset" type="checkbox" checked /> Show “If First Loss” reset</label>
+      <button id="tdGenerate" class="td-primary" type="button">Generate Tournament</button>
+      <p id="tdMessage" class="td-message" role="status"></p>
+      <div id="tdSummary" class="td-summary"></div>
+    </aside>
+    <section class="td-workspace">
+      <div class="td-title-row">
+        <div><div id="tdTournamentLabel" class="td-kicker">NEXUS Tournament</div><h2 id="tdBracketTitle">8 Player Double Elimination</h2></div>
+        <div class="td-legend"><span><b>W#</b> winner of match</span><span><b>L#</b> loser of match</span><span class="td-live-dot"></span><span>ready</span></div>
+      </div>
+      <div id="tdBracket" class="td-bracket" aria-live="polite"></div>
+    </section>
+  </main>
+  <template id="tdMatchTemplate">
+    <article class="td-match">
+      <div class="td-match-head"><span class="td-match-number"></span><span class="td-match-round"></span></div>
+      <button class="td-slot td-slot-a" type="button"></button>
+      <button class="td-slot td-slot-b" type="button"></button>
+    </article>
+  </template>
+  <script type="module" src="/tournament-director.js?v=0.12.0"></script>
+</body>
+</html>
