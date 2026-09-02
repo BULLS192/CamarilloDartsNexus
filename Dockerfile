@@ -181,6 +181,17 @@ COPY tests/player-metrics-v1001.test.js tests/consensus-rating-v1002.test.js tes
 COPY deploy/patch-v1001-unified-player-metrics.mjs /tmp/patch-v1001-unified-player-metrics.mjs
 RUN node /tmp/patch-v1001-unified-player-metrics.mjs && rm /tmp/patch-v1001-unified-player-metrics.mjs
 
+# V0.12.0: NEXUS Tournament Director bracket graph, printable UI, and regression suite.
+COPY src/tournament-brackets.js /app/src/tournament-brackets.js
+COPY src/tournament-brackets.js /app/public/tournament-brackets.js
+COPY public/tournament.html /app/public/tournament.html
+COPY public/tournament-director.js /app/public/tournament-director.js
+COPY public/tournament-director.css /app/public/tournament-director.css
+COPY public/tournament-entry.js /app/public/tournament-entry.js
+COPY tests/tournament-brackets.test.js /app/tests/tournament-brackets.test.js
+COPY deploy/patch-v1200-tournament-director.mjs /tmp/patch-v1200-tournament-director.mjs
+RUN node /tmp/patch-v1200-tournament-director.mjs && rm /tmp/patch-v1200-tournament-director.mjs
+
 # Normal sync no longer requires a browser install.
 RUN npm install --omit=dev
 RUN npm run check
