@@ -181,18 +181,16 @@ COPY tests/player-metrics-v1001.test.js tests/consensus-rating-v1002.test.js tes
 COPY deploy/patch-v1001-unified-player-metrics.mjs /tmp/patch-v1001-unified-player-metrics.mjs
 RUN node /tmp/patch-v1001-unified-player-metrics.mjs && rm /tmp/patch-v1001-unified-player-metrics.mjs
 
-# V0.12.0: install the complete Tournament Director in two layers to stay below Docker's layer-depth ceiling.
+# V0.12.0: install Tournament Director and run install/regression in the same final layer to stay below Docker's layer-depth ceiling.
 COPY src/tournament-brackets.js public/tournament.html public/tournament-director.js public/tournament-director.css public/tournament-entry.js tests/tournament-brackets.test.js deploy/patch-v1200-tournament-director.mjs /tmp/v1200/
 RUN cp /tmp/v1200/tournament-brackets.js /app/src/tournament-brackets.js \
   && cp /tmp/v1200/tournament-brackets.js /app/public/tournament-brackets.js \
   && cp /tmp/v1200/tournament.html /tmp/v1200/tournament-director.js /tmp/v1200/tournament-director.css /tmp/v1200/tournament-entry.js /app/public/ \
   && cp /tmp/v1200/tournament-brackets.test.js /app/tests/tournament-brackets.test.js \
   && node /tmp/v1200/patch-v1200-tournament-director.mjs \
-  && rm -rf /tmp/v1200
-
-# Normal sync no longer requires a browser install.
-RUN npm install --omit=dev
-RUN npm run check
+  && rm -rf /tmp/v1200 \
+  && npm install --omit=dev \
+  && npm run check
 
 ENV NODE_ENV=production
 ENV PORT=10000
