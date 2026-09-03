@@ -33,7 +33,7 @@ fs.writeFileSync(edcPath,edc);
 server=replaceRequired(
   server,
   "const TOC_BACKGROUND_SYNC_MS=Math.max(60*60_000,Number(process.env.TOC_BACKGROUND_SYNC_MS)||6*60*60_000);",
-  "const TOC_BACKGROUND_SYNC_MS=Math.max(6*60*60_000,Number(process.env.TOC_BACKGROUND_SYNC_MS)||24*60*60_000);\nconst TOC_IDLE_BEFORE_SYNC_MS=Math.max(60_000,Number(process.env.TOC_IDLE_BEFORE_SYNC_MS)||5*60_000);\nconst TOC_BACKGROUND_CHECK_MS=Math.max(60_000,Number(process.env.TOC_BACKGROUND_CHECK_MS)||5*60_000);\nlet lastInteractiveActivityAt=Date.now();",
+  "const TOC_BACKGROUND_SYNC_MS=Math.max(6*60*60_000,Number(process.env.TOC_BACKGROUND_SYNC_MS)||24*60*60_000);\nconst TOC_IDLE_BEFORE_SYNC_MS=Math.max(60_000,Number(process.env.TOC_IDLE_BEFORE_SYNC_MS)||5*60_000);\nconst TOC_BACKGROUND_CHECK_MS=Math.max(60_000,Number(process.env.TOC_BACKGROUND_CHECK_MS)||5*60_000);\nconst TOC_BACKGROUND_ENABLED=String(process.env.TOC_BACKGROUND_ENABLED||'true').toLowerCase()!=='false';\nconst EDC_BACKGROUND_ENABLED=String(process.env.EDC_BACKGROUND_ENABLED||'true').toLowerCase()!=='false';\nlet lastInteractiveActivityAt=Date.now();",
   'TOC schedule constants'
 );
 
@@ -65,17 +65,17 @@ const startRe=/function startBackgroundSourceSync\(\)\{[\s\S]*?\n\}\nasync funct
 if(!startRe.test(server))throw new Error('V0.9.5 performance patch: startBackgroundSourceSync block not found');
 server=server.replace(startRe,`function startBackgroundSourceSync(){
   sourceSyncState.startedAt=new Date().toISOString();
-  const tocStartup=setTimeout(()=>void refreshTocBackground(),TOC_BACKGROUND_CHECK_MS);tocStartup.unref?.();
-  const edcTimer=setInterval(()=>void refreshEdcBackground(),EDC_BACKGROUND_SYNC_MS);edcTimer.unref?.();
-  const tocCheckTimer=setInterval(()=>void refreshTocBackground(),TOC_BACKGROUND_CHECK_MS);tocCheckTimer.unref?.();
-  console.log('[Sources] background sync active: EDC '+Math.round(EDC_BACKGROUND_SYNC_MS/3_600_000)+'h with no startup download; TOC freshness '+Math.round(TOC_BACKGROUND_SYNC_MS/3_600_000)+'h; idle gate '+Math.round(TOC_IDLE_BEFORE_SYNC_MS/60_000)+'m');
+  if(TOC_BACKGROUND_ENABLED){const tocStartup=setTimeout(()=>void refreshTocBackground(),TOC_BACKGROUND_CHECK_MS);tocStartup.unref?.();}
+  if(EDC_BACKGROUND_ENABLED){const edcTimer=setInterval(()=>void refreshEdcBackground(),EDC_BACKGROUND_SYNC_MS);edcTimer.unref?.();}
+  if(TOC_BACKGROUND_ENABLED){const tocCheckTimer=setInterval(()=>void refreshTocBackground(),TOC_BACKGROUND_CHECK_MS);tocCheckTimer.unref?.();}
+  console.log('[Sources] background sync: EDC '+(EDC_BACKGROUND_ENABLED?Math.round(EDC_BACKGROUND_SYNC_MS/3_600_000)+'h':'OFF')+'; TOC '+(TOC_BACKGROUND_ENABLED?Math.round(TOC_BACKGROUND_SYNC_MS/3_600_000)+'h':'OFF')+'; idle gate '+Math.round(TOC_IDLE_BEFORE_SYNC_MS/60_000)+'m');
 }
 async function sourceSyncStatus(){`);
 
 server=replaceRequired(
   server,
   "intervals:{edcMs:EDC_BACKGROUND_SYNC_MS,tocMs:TOC_BACKGROUND_SYNC_MS}",
-  "intervals:{edcMs:EDC_BACKGROUND_SYNC_MS,tocMs:TOC_BACKGROUND_SYNC_MS,tocCheckMs:TOC_BACKGROUND_CHECK_MS,tocIdleMs:TOC_IDLE_BEFORE_SYNC_MS}",
+  "intervals:{edcMs:EDC_BACKGROUND_SYNC_MS,tocMs:TOC_BACKGROUND_SYNC_MS,tocCheckMs:TOC_BACKGROUND_CHECK_MS,tocIdleMs:TOC_IDLE_BEFORE_SYNC_MS,tocEnabled:TOC_BACKGROUND_ENABLED,edcEnabled:EDC_BACKGROUND_ENABLED}",
   'source status intervals'
 );
 
