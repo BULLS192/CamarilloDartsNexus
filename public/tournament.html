@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1016" />
+  <title>NEXUS Tournament Director</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tournament-director.css?v=0.12.2" />
+</head>
+<body class="td-body">
+  <header class="td-topbar">
+    <div class="td-brandlock"><a class="td-brand" href="/">NEXUS</a><div><div class="td-kicker">Camarillo Darts Nexus</div><h1>Tournament Director</h1></div></div>
+    <div class="td-event-head"><strong id="tdHeaderName">Untitled Tournament</strong><span id="tdHeaderStatus" class="td-status draft">SETUP</span></div>
+    <div class="td-actions"><button id="tdPublicView" type="button">Public Display</button><button id="tdBoardMode" type="button">Board Mode</button><button id="tdPrint" type="button">Print</button><button id="tdTheme" type="button">Light</button><button id="tdUndo" type="button" disabled>Undo Result</button></div>
+  </header>
+
+  <nav id="tdTabs" class="td-tabs" aria-label="Tournament Director sections">
+    <button data-tab="setup" class="active">1 · Setup</button>
+    <button data-tab="players">2 · Check-in <span id="tdRosterBadge" class="td-tab-badge">0</span></button>
+    <button data-tab="teams">3 · Teams</button><button data-tab="bracket">4 · Bracket</button><button data-tab="boards">5 · Boards</button><button data-tab="mystery">6 · Mystery Out</button><button data-tab="payouts">7 · Payouts</button><button data-tab="dashboard">Dashboard</button>
+  </nav>
+  <div id="tdMessage" class="td-toast" role="status" aria-live="polite"></div>
+
+  <main class="td-control-room">
+    <section class="td-summary-strip" aria-label="Tournament summary">
+      <article><span>Players</span><strong id="sumPlayers">0</strong><small id="sumGender">0 M · 0 F</small></article>
+      <article><span>Paid</span><strong id="sumPaid">0 / 0</strong><small id="sumCollected">$0 collected</small></article>
+      <article><span>Teams</span><strong id="sumTeams">0</strong><small id="sumMode">Singles</small></article>
+      <article><span>Boards</span><strong id="sumBoards">0 / 4</strong><small>active / available</small></article>
+      <article><span>Prize Pool</span><strong id="sumPool">$0</strong><small id="sumMysteryPot">$0 Mystery Out</small></article>
+      <article><span>Progress</span><strong id="sumProgress">0%</strong><small id="sumReady">Not started</small></article>
+    </section>
+
+    <section id="tab-setup" class="td-tab-panel active">
+      <div class="td-page-title"><div><div class="td-kicker">Event control</div><h2>Tournament Setup</h2><p>Set the event rules once, then run the night from the control room.</p></div><button id="tdStartTournament" class="td-primary td-large" type="button">Build Tournament</button></div>
+      <div class="td-layout-2">
+        <article class="td-card"><div class="td-card-head"><div><span class="td-step">01</span><h3>Event details</h3></div></div><div class="td-form-grid two">
+          <label class="span-2">Tournament name<input id="tdName" value="NEXUS Blind Draw" /></label><label>Date<input id="tdDate" type="date" /></label><label>Start time<input id="tdTime" type="time" /></label>
+          <label>Venue<select id="tdVenue"><option value="Hot Dog Shop">Hot Dog Shop</option><option value="JJ's Bar">JJ's Bar</option><option value="JB's Pub & Grill">JB's Pub & Grill</option><option value="Other">Other / custom</option></select></label><label>Custom venue<input id="tdVenueCustom" placeholder="Optional" /></label>
+        </div></article>
+        <article class="td-card"><div class="td-card-head"><div><span class="td-step">02</span><h3>Format & boards</h3></div></div><div class="td-form-grid two">
+          <label>Elimination<select id="tdFormat"><option value="double">Double Elimination</option><option value="single">Single Elimination</option></select></label>
+          <label>Entrants<select id="tdEntrantMode"><option value="blind-doubles">Blind Draw Doubles</option><option value="fixed-doubles">Fixed Doubles</option><option value="singles">Singles</option></select></label>
+          <label>Draw / seeding<select id="tdSeeding"><option value="random">Random / Blind</option><option value="seeded">Seeded</option></select></label><label>Boards<input id="tdBoardCount" type="number" min="1" max="32" value="4" /></label>
+        </div><label class="td-toggle"><input id="tdAutoBoards" type="checkbox" checked /><span>Automatically fill the next free board</span></label><label class="td-toggle"><input id="tdShowReset" type="checkbox" checked /><span>Show conditional Grand Final reset</span></label></article>
+        <article class="td-card"><div class="td-card-head"><div><span class="td-step">03</span><h3>Money</h3></div><span class="td-card-note">Hot Dog Shop-style pot controls</span></div><div class="td-form-grid three">
+          <label>Entry fee / player ($)<input id="tdEntryFee" type="number" min="0" step="1" value="10" /></label><label>Mystery Out / player ($)<input id="tdMysteryPerPlayer" type="number" min="0" step="1" value="2" /></label><label>Honey Pot ($)<input id="tdHoneyAmount" type="number" min="0" step="1" value="0" /></label><label>Honey Pot female minimum<input id="tdHoneyThreshold" type="number" min="1" step="1" value="3" /></label><label>Expenses ($)<input id="tdExpenses" type="number" min="0" step="1" value="0" /></label>
+        </div><div class="td-check-row"><label class="td-toggle"><input id="tdBarMatchPot" type="checkbox" /><span>Bar matches player pot</span></label><label class="td-toggle"><input id="tdBarMatchMystery" type="checkbox" /><span>Bar matches Mystery Out pot</span></label></div></article>
+        <article class="td-card td-readiness"><div class="td-card-head"><div><span class="td-step">04</span><h3>Ready check</h3></div></div><ul id="tdReadinessList" class="td-checklist"></ul><div class="td-button-row"><button id="tdGoPlayers" type="button">Open Check-in</button><button id="tdResetEvent" class="danger" type="button">Reset Staging Event</button></div></article>
+      </div>
+    </section>
+
+    <section id="tab-players" class="td-tab-panel">
+      <div class="td-page-title"><div><div class="td-kicker">Roster</div><h2>Player Check-in</h2><p>Search the NEXUS directory, preserve player identity and gender, and track payment at the door.</p></div></div>
+      <div class="td-layout-roster">
+        <article class="td-card"><div class="td-card-head"><div><h3>NEXUS Player Directory</h3><p id="tdDirectoryStatus">Loading player directory…</p></div><button id="tdRefreshDirectory" type="button">Refresh</button></div><div class="td-search-row"><input id="tdPlayerSearch" type="search" placeholder="Search name or nickname…" /><select id="tdGenderFilter"><option value="all">All genders</option><option value="female">Female</option><option value="male">Male</option><option value="other">Other / unknown</option></select></div><div id="tdDirectoryList" class="td-directory-list"></div></article>
+        <article class="td-card"><div class="td-card-head"><div><h3>Tonight's Roster</h3><p><span id="tdPaidCount">0</span> paid · <span id="tdUnpaidCount">0</span> unpaid</p></div><button id="tdMarkAllPaid" type="button">Mark all paid</button></div><div id="tdRosterList" class="td-roster-list"></div><details class="td-details"><summary>Add walk-in / new player</summary><form id="tdManualPlayerForm" class="td-form-grid two"><label>First name<input id="tdManualFirst" required /></label><label>Last name<input id="tdManualLast" /></label><label>Nickname<input id="tdManualNick" /></label><label>Gender<select id="tdManualGender" required><option value="">Select…</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></label><button class="td-primary span-2" type="submit">Add to Tonight</button></form></details></article>
+      </div>
+    </section>
+
+    <section id="tab-teams" class="td-tab-panel">
+      <div class="td-page-title"><div><div class="td-kicker">Draw room</div><h2>Teams & Draw</h2><p>Run a blind draw or build fixed teams. NEXUS keeps each player linked to their permanent player ID.</p></div><button id="tdDrawTeams" class="td-primary" type="button">Draw Teams</button></div>
+      <div class="td-layout-2"><article class="td-card"><div class="td-card-head"><div><h3>Team builder</h3><p id="tdTeamInstruction">Blind Draw Doubles will randomize the checked-in roster.</p></div></div><div id="tdManualTeamBuilder" class="td-form-grid three"><label>Player 1<select id="tdTeamPlayerA"></select></label><label>Player 2<select id="tdTeamPlayerB"></select></label><button id="tdAddFixedTeam" type="button">Add Team</button></div><div class="td-button-row"><button id="tdClearTeams" type="button">Clear Teams</button><button id="tdRedrawTeams" type="button">Redraw</button></div></article><article class="td-card"><div class="td-card-head"><div><h3>Draw quality</h3><p>Use this as the final check before the bracket is built.</p></div></div><div id="tdTeamDiagnostics" class="td-diagnostics"></div></article></div>
+      <div id="tdTeamsGrid" class="td-team-grid"></div>
+    </section>
+
+    <section id="tab-bracket" class="td-tab-panel">
+      <div class="td-page-title td-bracket-heading"><div><div class="td-kicker">Tournament</div><h2 id="tdBracketTitle">Bracket not built</h2><p id="tdBracketSubtitle">Complete check-in and build the tournament from Setup.</p></div><div class="td-button-row"><button id="tdRebuildBracket" type="button">Rebuild</button><label class="td-toggle compact"><input id="tdShowSeeds" type="checkbox" checked /><span>Seeds</span></label></div></div><div id="tdBracket" class="td-bracket"></div>
+    </section>
+
+    <section id="tab-boards" class="td-tab-panel">
+      <div class="td-page-title"><div><div class="td-kicker">Floor control</div><h2>Boards & Match Queue</h2><p>See who is playing now and who should be called next.</p></div><button id="tdAutoAssignBoards" class="td-primary" type="button">Fill Free Boards</button></div><div class="td-layout-boards"><div><h3 class="td-subhead">Live boards</h3><div id="tdBoardGrid" class="td-board-grid"></div></div><div><h3 class="td-subhead">Ready / waiting</h3><div id="tdReadyQueue" class="td-ready-queue"></div></div></div>
+    </section>
+
+    <section id="tab-mystery" class="td-tab-panel">
+      <div class="td-page-title"><div><div class="td-kicker">Side pot</div><h2>Mystery Out</h2><p>Track tonight's target and every player who hits a valid Master Out.</p></div><button id="tdMysteryDisplay" type="button">Display Mode</button></div>
+      <div class="td-layout-2 mystery-layout"><article class="td-card"><div class="td-card-head"><div><h3>Tonight's target</h3><p>1–180 · double / triple / bull finish</p></div><strong id="tdMysteryTargetHero" class="td-target-hero">—</strong></div><div class="td-form-grid two"><label>Target number<input id="tdMysteryTarget" type="number" min="1" max="180" /></label><button id="tdSetRandomMystery" type="button">Pick Random Valid Out</button></div><form id="tdMysteryForm" class="td-form-grid three"><label>Player<select id="tdMysteryPlayer"></select></label><label>Out number<input id="tdMysteryNumber" type="number" min="1" max="180" required /></label><button class="td-primary" type="submit">Record Hit</button></form><div id="tdMysteryHistory" class="td-mystery-history"></div></article><article class="td-card mystery-board-card"><div class="td-card-head"><div><h3>Master Out board</h3><p>Green = hit · red slash = no valid Master Out</p></div></div><div id="tdMysteryGrid" class="td-mystery-grid"></div></article></div>
+    </section>
+
+    <section id="tab-payouts" class="td-tab-panel">
+      <div class="td-page-title"><div><div class="td-kicker">Money desk</div><h2>Pot & Payouts</h2><p>Keep player money, bar matches, Mystery Out, Honey Pot, expenses and tournament payouts visible and auditable.</p></div></div>
+      <div class="td-payout-layout"><article class="td-card"><div class="td-card-head"><div><h3>Payout split</h3><p>Percentages apply to the tournament prize pool.</p></div><button id="tdEvenPayouts" type="button">Suggested Even Payouts</button></div><div class="td-form-grid four"><label>1st %<input id="tdPayout1" type="number" min="0" max="100" value="50" /></label><label>2nd %<input id="tdPayout2" type="number" min="0" max="100" value="30" /></label><label>3rd %<input id="tdPayout3" type="number" min="0" max="100" value="20" /></label><label>4th %<input id="tdPayout4" type="number" min="0" max="100" value="0" /></label></div><div id="tdPayoutWarning" class="td-inline-warning"></div><div id="tdPayoutPositions" class="td-payout-positions"></div></article><article class="td-card"><div class="td-card-head"><div><h3>Pot ledger</h3><p id="tdFinanceExplain">Calculated from tonight's roster.</p></div></div><div id="tdPotLedger" class="td-ledger"></div></article></div>
+    </section>
+
+    <section id="tab-dashboard" class="td-tab-panel">
+      <div class="td-page-title"><div><div class="td-kicker">Director dashboard</div><h2>Tonight at a Glance</h2><p>Operations, finance and bracket progress in one screen.</p></div></div><div id="tdDashboardMetrics" class="td-dashboard-metrics"></div><div class="td-layout-2"><article class="td-card"><div class="td-card-head"><div><h3>Now playing</h3><p>Board assignments</p></div></div><div id="tdDashboardBoards"></div></article><article class="td-card"><div class="td-card-head"><div><h3>Next up</h3><p>Ready matches waiting for a board</p></div></div><div id="tdDashboardNext"></div></article><article class="td-card"><div class="td-card-head"><div><h3>Money</h3><p>Collected vs projected</p></div></div><div id="tdDashboardMoney"></div></article><article class="td-card"><div class="td-card-head"><div><h3>Mystery Out & champion</h3><p>Side-pot activity and event result</p></div></div><div id="tdDashboardResult"></div></article></div>
+    </section>
+  </main>
+
+  <dialog id="tdResultDialog" class="td-dialog"><form method="dialog" id="tdResultForm"><div class="td-dialog-head"><div><div class="td-kicker">Record result</div><h3 id="tdResultMatchLabel">Match</h3></div><button value="cancel" aria-label="Close">×</button></div><div id="tdResultPlayers" class="td-result-players"></div><div class="td-form-grid two"><label>Score A<input id="tdScoreA" type="number" min="0" step="1" placeholder="Optional" /></label><label>Score B<input id="tdScoreB" type="number" min="0" step="1" placeholder="Optional" /></label></div><label>Board<select id="tdResultBoard"></select></label><label>Notes<input id="tdResultNotes" placeholder="Optional" /></label><div class="td-dialog-actions"><button value="cancel" type="button" id="tdResultCancel">Cancel</button><button class="td-primary" type="submit">Save Result</button></div></form></dialog>
+  <script type="module" src="/tournament-director.js?v=0.12.2"></script>
+</body>
+</html>
