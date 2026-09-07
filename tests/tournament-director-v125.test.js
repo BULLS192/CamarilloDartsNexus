@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const staging=fs.readFileSync('src/tournament-staging-server.mjs','utf8');
+const collab=fs.readFileSync('public/tournament-v125-collab.js','utf8');
+const patch=fs.readFileSync('deploy/patch-v1200-tournament-director.mjs','utf8');
+const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
+assert.ok(staging.includes("type=eq.tournament-staging"),'collaborative staging must be scoped to tournament-staging rows');
+assert.ok(staging.includes('Player-directory writes are disabled on collaborative staging.'),'collaborative staging must not write NEXUS players');
+assert.ok(staging.includes("x-tournament-edit-key"),'staging director writes must require per-tournament edit key');
+assert.ok(collab.includes('editKeyRequired=backend.editKeyRequired!==false'),'staging client must understand keyed and authenticated collaboration modes');
+assert.ok(collab.includes('setInterval(()=>pullRemote(false),2500)'),'staging collaboration must poll remote state');
+assert.ok(patch.includes("tdSnapshotMatch&&req.method==='GET'"),'main production patch must add authenticated full snapshot GET');
+assert.ok(patch.includes('collaborative:true,editKeyRequired:false,playerWrites:true'),'main production collaboration must use existing NEXUS authentication');
+assert.ok(patch.includes('tournament-v125-collab.js'),'main production patch must generate/load collaboration client');
+assert.ok(patch.includes("node --check public/tournament-v125-collab.js"),'generated production collaboration client must be syntax checked');
+assert.equal(pkg.version,'0.11.3','Tournament Director must preserve global NEXUS package version');
+console.log('Tournament Director V0.12.5 collaboration source contract passed');

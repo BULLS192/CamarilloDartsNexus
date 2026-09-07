@@ -181,9 +181,17 @@ COPY tests/player-metrics-v1001.test.js tests/consensus-rating-v1002.test.js tes
 COPY deploy/patch-v1001-unified-player-metrics.mjs /tmp/patch-v1001-unified-player-metrics.mjs
 RUN node /tmp/patch-v1001-unified-player-metrics.mjs && rm /tmp/patch-v1001-unified-player-metrics.mjs
 
-# Normal sync no longer requires a browser install.
-RUN npm install --omit=dev
-RUN npm run check
+# V0.12.4: Tournament Director event operations, My View, recovery, analytics and PWA. Keep in the existing final layer.
+COPY src/tournament-brackets.js src/tournament-director-api.js public/tournament.html public/tournament-director.js public/tournament-director.css public/tournament-enhancements.js public/tournament-enhancements.css public/tournament-v123-finalize.js public/tournament-v124-boardboss.js public/tournament-v124.css public/tournament-public.html public/tournament-public.js public/tournament-v124-public.js public/tournament-my.html public/tournament-my.js public/tournament-manifest.webmanifest public/tournament-sw.js public/tournament-entry.js tests/tournament-brackets.test.js tests/tournament-director-v123.test.js tests/tournament-director-v124.test.js deploy/patch-v1200-tournament-director.mjs /tmp/v1200/
+RUN cp /tmp/v1200/tournament-brackets.js /app/src/tournament-brackets.js \
+  && cp /tmp/v1200/tournament-director-api.js /app/src/tournament-director-api.js \
+  && cp /tmp/v1200/tournament-brackets.js /app/public/tournament-brackets.js \
+  && cp /tmp/v1200/tournament.html /tmp/v1200/tournament-director.js /tmp/v1200/tournament-director.css /tmp/v1200/tournament-enhancements.js /tmp/v1200/tournament-enhancements.css /tmp/v1200/tournament-v123-finalize.js /tmp/v1200/tournament-v124-boardboss.js /tmp/v1200/tournament-v124.css /tmp/v1200/tournament-public.html /tmp/v1200/tournament-public.js /tmp/v1200/tournament-v124-public.js /tmp/v1200/tournament-my.html /tmp/v1200/tournament-my.js /tmp/v1200/tournament-manifest.webmanifest /tmp/v1200/tournament-sw.js /tmp/v1200/tournament-entry.js /app/public/ \
+  && cp /tmp/v1200/tournament-brackets.test.js /tmp/v1200/tournament-director-v123.test.js /tmp/v1200/tournament-director-v124.test.js /app/tests/ \
+  && node /tmp/v1200/patch-v1200-tournament-director.mjs \
+  && rm -rf /tmp/v1200 \
+  && npm install --omit=dev \
+  && npm run check
 
 ENV NODE_ENV=production
 ENV PORT=10000
