@@ -1,43 +1,16 @@
 import fs from 'node:fs';
-
-const MODULE_VERSION = '0.12.0';
-const paths = {
-  index: fs.existsSync('/app/public/index.html') ? '/app/public/index.html' : 'public/index.html',
-  pkg: fs.existsSync('/app/package.json') ? '/app/package.json' : 'package.json',
-  marker: fs.existsSync('/app') ? '/app/.v1200-tournament-director-applied' : '.v1200-tournament-director-applied',
-};
-
-if (!fs.existsSync(paths.index)) throw new Error('Tournament Director patch: public/index.html not found after bundle reconstruction.');
-let html = fs.readFileSync(paths.index, 'utf8');
-if (!html.includes('/tournament-entry.js')) {
-  if (!html.includes('</body>')) throw new Error('Tournament Director patch: </body> anchor not found.');
-  html = html.replace('</body>', `<script src="/tournament-entry.js?v=${MODULE_VERSION}"></script></body>`);
-  fs.writeFileSync(paths.index, html);
-}
-
-const pkg = JSON.parse(fs.readFileSync(paths.pkg, 'utf8'));
-const appVersion = pkg.version;
-// Tournament Director is versioned independently. Preserve the established
-// global NEXUS package version because existing compatibility tests and other
-// modules intentionally use it as the application-baseline contract.
-pkg.description = 'Camarillo Darts Nexus with Tournament Director bracket engine';
-if (!pkg.scripts) pkg.scripts = {};
-const checks = [
-  'node --check src/tournament-brackets.js',
-  'node --check public/tournament-director.js',
-  'node --check public/tournament-entry.js',
-  'node tests/tournament-brackets.test.js',
-];
-for (const cmd of checks) {
-  if (!String(pkg.scripts.check || '').includes(cmd)) pkg.scripts.check += (pkg.scripts.check ? ' && ' : '') + cmd;
-}
-fs.writeFileSync(paths.pkg, JSON.stringify(pkg, null, 2) + '\n');
-fs.writeFileSync(paths.marker, JSON.stringify({
-  moduleVersion: MODULE_VERSION,
-  appVersion,
-  module: 'NEXUS Tournament Director',
-  page: '/tournament.html',
-  formats: ['single-elimination', 'double-elimination'],
-  maxParticipants: 128,
-  grandFinalReset: true,
-}) + '\n');
+const MODULE_VERSION='0.12.3';
+const paths={index:fs.existsSync('/app/public/index.html')?'/app/public/index.html':'public/index.html',server:fs.existsSync('/app/server.js')?'/app/server.js':'server.js',pkg:fs.existsSync('/app/package.json')?'/app/package.json':'package.json',marker:fs.existsSync('/app')?'/app/.v1200-tournament-director-applied':'.v1200-tournament-director-applied'};
+if(!fs.existsSync(paths.index))throw new Error('Tournament Director patch: public/index.html not found after bundle reconstruction.');
+let html=fs.readFileSync(paths.index,'utf8');if(!html.includes('/tournament-entry.js')){if(!html.includes('</body>'))throw new Error('Tournament Director patch: </body> anchor not found.');html=html.replace('</body>',`<script src="/tournament-entry.js?v=${MODULE_VERSION}"></script></body>`);fs.writeFileSync(paths.index,html)}
+let server=fs.readFileSync(paths.server,'utf8');
+const apiImport="import { saveTournamentDirectorSnapshot, getPublicTournamentDirectorSnapshot, upsertTournamentDirectorPlayer, tournamentDirectorBackend } from './src/tournament-director-api.js';\n";
+if(!server.includes("from './src/tournament-director-api.js'"))server=apiImport+server;
+const authAnchor='if(!requireAuth(req,res))return;';if(!server.includes(authAnchor))throw new Error('Tournament Director patch: auth anchor not found.');
+const publicRoute=`const tdPublicMatch=url.pathname.match(/^\\/api\\/tournament-director\\/snapshots\\/([^/]+)\\/public$/);\nif(tdPublicMatch&&req.method==='GET'){const snapshot=await getPublicTournamentDirectorSnapshot(decodeURIComponent(tdPublicMatch[1]));if(!snapshot)return json(res,404,{error:'Tournament not found'});return json(res,200,snapshot)}\n`;
+if(!server.includes('tdPublicMatch=url.pathname.match'))server=server.replace(authAnchor,()=>publicRoute+authAnchor);
+const privateRoutes=`\nconst tdSnapshotMatch=url.pathname.match(/^\\/api\\/tournament-director\\/snapshots\\/([^/]+)$/);\nif(tdSnapshotMatch&&req.method==='PUT'){const payload=await body(req).catch(()=>({}));const saved=await saveTournamentDirectorSnapshot(decodeURIComponent(tdSnapshotMatch[1]),payload?.state||payload);return json(res,200,saved)}\nif(url.pathname==='/api/tournament-director/players'&&req.method==='POST'){const payload=await body(req).catch(()=>({}));const saved=await upsertTournamentDirectorPlayer(payload||{});return json(res,200,saved)}\nif(url.pathname==='/api/tournament-director/backend'&&req.method==='GET'){return json(res,200,{backend:tournamentDirectorBackend()})}\n`;
+if(!server.includes("url.pathname==='/api/tournament-director/players'"))server=server.replace(authAnchor,()=>authAnchor+privateRoutes);
+fs.writeFileSync(paths.server,server);
+const pkg=JSON.parse(fs.readFileSync(paths.pkg,'utf8')),appVersion=pkg.version;if(!pkg.scripts)pkg.scripts={};const checks=['node --check src/tournament-brackets.js','node --check src/tournament-director-api.js','node --check public/tournament-director.js','node --check public/tournament-enhancements.js','node --check public/tournament-public.js','node --check public/tournament-entry.js','node tests/tournament-brackets.test.js'];for(const cmd of checks)if(!String(pkg.scripts.check||'').includes(cmd))pkg.scripts.check+=(pkg.scripts.check?' && ':'')+cmd;pkg.description='Camarillo Darts Nexus with Tournament Director V0.12.3';fs.writeFileSync(paths.pkg,JSON.stringify(pkg,null,2)+'\n');
+fs.writeFileSync(paths.marker,JSON.stringify({moduleVersion:MODULE_VERSION,appVersion,module:'NEXUS Tournament Director',page:'/tournament.html',publicPage:'/tournament-public.html',features:['recurrence','sponsors','managed-locations','walk-in-identity','gender-aware-draw','public-links','feats','rolling-side-pots','database-autosave','undo'],formats:['single-elimination','double-elimination'],maxParticipants:128,grandFinalReset:true})+'\n');
