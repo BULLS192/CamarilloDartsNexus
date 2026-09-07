@@ -13,7 +13,7 @@ assert.ok(enhancements.includes("/api/tournament-director/players"),'walk-in NEX
 assert.ok(enhancements.includes('avoidFemaleFemale'),'gender-aware draw rule missing');
 assert.ok(enhancements.includes('td-out-names'),'Mystery Out player labels missing');
 assert.ok(finalize.includes('sanitizedPublicSnapshot'),'portable public links must be sanitized');
-assert.ok(finalize.includes('entrantIdMap'),'public participant IDs must be remapped');
+assert.ok(finalize.includes("`entrant-${i+1}`"),'portable public participant IDs must be remapped');
 assert.ok(finalize.includes('autoRollCompleted'),'rolling side pots must auto-carry on completion');
 assert.ok(finalize.includes('Other Mini-Game Pots'),'generic mini-game pot support missing');
 assert.ok(publicJs.includes("/api/tournament-director/snapshots/"),'public page live snapshot route missing');
