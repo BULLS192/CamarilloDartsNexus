@@ -23,3 +23,4 @@ function autoRollCustom(){if($('#tdHeaderStatus')?.textContent!=='COMPLETE')retu
 function intercept(){document.addEventListener('click',e=>{const copy=e.target.closest?.('[data-copy-public]');if(copy){e.preventDefault();e.stopImmediatePropagation();handlePublic(false);return}if(e.target.closest?.('#tdPublicView')){e.preventDefault();e.stopImmediatePropagation();handlePublic(true)}},true)}
 function tick(){updatePayoutCards();autoRollCompleted();autoRollCustom();renderCustomPots()}
 intercept();bindCustom();ensureCustomPotUi();tick();setInterval(tick,1200);
+import('/tournament-v124-boardboss.js?v=0.12.4').catch(()=>{});
