@@ -182,12 +182,12 @@ COPY deploy/patch-v1001-unified-player-metrics.mjs /tmp/patch-v1001-unified-play
 RUN node /tmp/patch-v1001-unified-player-metrics.mjs && rm /tmp/patch-v1001-unified-player-metrics.mjs
 
 # V0.12.3: Tournament Director control room, public view and persistence API. Keep in the existing final layer.
-COPY src/tournament-brackets.js src/tournament-director-api.js public/tournament.html public/tournament-director.js public/tournament-director.css public/tournament-enhancements.js public/tournament-enhancements.css public/tournament-public.html public/tournament-public.js public/tournament-entry.js tests/tournament-brackets.test.js deploy/patch-v1200-tournament-director.mjs /tmp/v1200/
+COPY src/tournament-brackets.js src/tournament-director-api.js public/tournament.html public/tournament-director.js public/tournament-director.css public/tournament-enhancements.js public/tournament-enhancements.css public/tournament-v123-finalize.js public/tournament-public.html public/tournament-public.js public/tournament-entry.js tests/tournament-brackets.test.js tests/tournament-director-v123.test.js deploy/patch-v1200-tournament-director.mjs /tmp/v1200/
 RUN cp /tmp/v1200/tournament-brackets.js /app/src/tournament-brackets.js \
   && cp /tmp/v1200/tournament-director-api.js /app/src/tournament-director-api.js \
   && cp /tmp/v1200/tournament-brackets.js /app/public/tournament-brackets.js \
-  && cp /tmp/v1200/tournament.html /tmp/v1200/tournament-director.js /tmp/v1200/tournament-director.css /tmp/v1200/tournament-enhancements.js /tmp/v1200/tournament-enhancements.css /tmp/v1200/tournament-public.html /tmp/v1200/tournament-public.js /tmp/v1200/tournament-entry.js /app/public/ \
-  && cp /tmp/v1200/tournament-brackets.test.js /app/tests/tournament-brackets.test.js \
+  && cp /tmp/v1200/tournament.html /tmp/v1200/tournament-director.js /tmp/v1200/tournament-director.css /tmp/v1200/tournament-enhancements.js /tmp/v1200/tournament-enhancements.css /tmp/v1200/tournament-v123-finalize.js /tmp/v1200/tournament-public.html /tmp/v1200/tournament-public.js /tmp/v1200/tournament-entry.js /app/public/ \
+  && cp /tmp/v1200/tournament-brackets.test.js /tmp/v1200/tournament-director-v123.test.js /app/tests/ \
   && node /tmp/v1200/patch-v1200-tournament-director.mjs \
   && rm -rf /tmp/v1200 \
   && npm install --omit=dev \
