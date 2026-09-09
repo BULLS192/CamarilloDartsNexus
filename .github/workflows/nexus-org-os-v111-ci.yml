@@ -1,8 +1,8 @@
-name: NEXUS Organization OS V1.1
+name: NEXUS Organization OS V1.2
 
 on:
   push:
-    branches: ["feature/nexus-unified-org-os-v111"]
+    branches: ["feature/v120-universal-competition-engine"]
   pull_request:
     branches: ["main"]
 
