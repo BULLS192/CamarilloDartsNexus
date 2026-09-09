@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-09T16:55:00-05:00",
+  "updatedAt": "2026-09-09T17:15:06-05:00",
   "sources": [
     {
       "id": "src_561877d4ae9e",
@@ -14,10 +14,10 @@
       "active": true,
       "region": "Greater Houston, TX",
       "organizationScope": [],
-      "notes": "Houston-area dart event source. Initial public-web probe could not retrieve the group; test through the user's legitimate logged-in browser session before downgrading to manual review.",
-      "lastCheckedAt": "",
+      "notes": "Houston-area dart event source. Public-web and indexed-search probes did not expose current group posts; use the user's legitimate logged-in browser session for collection.",
+      "lastCheckedAt": "2026-09-09T17:15:06-05:00",
       "lastSuccessAt": "",
-      "lastError": ""
+      "lastError": "Facebook group posts were not retrievable through unauthenticated public web access and no current indexed group-post results were available."
     },
     {
       "id": "src_1bb7a7e6bf34",
@@ -31,10 +31,10 @@
       "active": true,
       "region": "Greater Houston, TX",
       "organizationScope": [],
-      "notes": "Houston-area dart event source. Initial public-web probe could not retrieve the group; test through the user's legitimate logged-in browser session before downgrading to manual review.",
-      "lastCheckedAt": "",
+      "notes": "Houston-area dart event source. Public-web and indexed-search probes did not expose current group posts; use the user's legitimate logged-in browser session for collection.",
+      "lastCheckedAt": "2026-09-09T17:15:06-05:00",
       "lastSuccessAt": "",
-      "lastError": ""
+      "lastError": "Facebook group posts were not retrievable through unauthenticated public web access and no current indexed group-post results were available."
     },
     {
       "id": "src_98cb4a1c1196",
@@ -48,10 +48,10 @@
       "active": true,
       "region": "Spring / North Houston, TX",
       "organizationScope": [],
-      "notes": "Spring-area dart event source. Initial public-web probe could not retrieve the group; test through the user's legitimate logged-in browser session before downgrading to manual review.",
-      "lastCheckedAt": "",
+      "notes": "Spring-area dart event source. Public-web and indexed-search probes did not expose current group posts; use the user's legitimate logged-in browser session for collection.",
+      "lastCheckedAt": "2026-09-09T17:15:06-05:00",
       "lastSuccessAt": "",
-      "lastError": ""
+      "lastError": "Facebook group posts were not retrievable through unauthenticated public web access and no current indexed group-post results were available."
     },
     {
       "id": "src_4f51054ccbe6",
@@ -65,10 +65,10 @@
       "active": true,
       "region": "Greater Houston, TX",
       "organizationScope": [],
-      "notes": "Soft-tip-focused Houston event source. Initial public-web probe could not retrieve the group; test through the user's legitimate logged-in browser session before downgrading to manual review.",
-      "lastCheckedAt": "",
+      "notes": "Soft-tip-focused Houston event source. Public-web and indexed-search probes did not expose current group posts; use the user's legitimate logged-in browser session for collection.",
+      "lastCheckedAt": "2026-09-09T17:15:06-05:00",
       "lastSuccessAt": "",
-      "lastError": ""
+      "lastError": "Facebook group posts were not retrievable through unauthenticated public web access and no current indexed group-post results were available."
     },
     {
       "id": "src_ec045ac0c836",
@@ -77,15 +77,15 @@
       "sourceType": "facebook_page",
       "url": "https://www.facebook.com/softtipdartshouston",
       "visibility": "public",
-      "collectionMode": "public_web",
+      "collectionMode": "authenticated_browser",
       "cadence": "weekly",
       "active": true,
       "region": "Greater Houston, TX",
       "organizationScope": [],
-      "notes": "Public Facebook page. Initial non-authenticated web probe reached Facebook but returned a temporary-block page, so the local Playwright capture should verify whether normal public reading is stable.",
-      "lastCheckedAt": "",
+      "notes": "Nominally public Facebook page, but unauthenticated web retrieval currently returns Facebook's block/login shell instead of timeline posts. Use a legitimate logged-in browser session for reliable collection.",
+      "lastCheckedAt": "2026-09-09T17:15:06-05:00",
       "lastSuccessAt": "",
-      "lastError": ""
+      "lastError": "Facebook returned a temporary-block/login page instead of the public timeline; current event posts could not be verified."
     },
     {
       "id": "src_eaa226df72e7",
@@ -99,10 +99,10 @@
       "active": true,
       "region": "Pasadena / Southeast Houston, TX",
       "organizationScope": [],
-      "notes": "Pasadena-area dart event source. Initial public-web probe could not retrieve the group; test through the user's legitimate logged-in browser session before downgrading to manual review.",
-      "lastCheckedAt": "",
+      "notes": "Pasadena-area dart event source. Public-web and indexed-search probes did not expose current group posts; use the user's legitimate logged-in browser session for collection.",
+      "lastCheckedAt": "2026-09-09T17:15:06-05:00",
       "lastSuccessAt": "",
-      "lastError": ""
+      "lastError": "Facebook group posts were not retrievable through unauthenticated public web access and no current indexed group-post results were available."
     }
   ]
 }
