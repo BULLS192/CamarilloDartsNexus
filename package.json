@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "check": "node --check server.js && node --check public/access-lab.js && node --check public/organization-os.js && node --check public/tournament-director.js && node --check src/store.js && node --check src/bullshooter.js && node --check src/sheets.js && node tests/handicap.test.js && node tests/platform.test.js && node tests/rbac-v120.test.js",
+    "check": "node --check server.js && node --check public/access-lab.js && node --check public/organization-os.js && node --check public/tournament-director.js && node --check src/bullshooter.js && node --check src/sheets.js && node --check src/tournament-brackets.js && node tests/handicap.test.js && node tests/platform.test.js && node tests/rbac-v120.test.js",
     "test:rbac": "node tests/rbac-v120.test.js",
     "provision:test-users": "node scripts/provision-nexus-test-users.mjs"
   },
