@@ -40,6 +40,10 @@ async function request(pathname, options = {}) {
   return payload;
 }
 
+function unwrapUser(payload) {
+  return payload?.user || payload;
+}
+
 function tempPassword() {
   const body = crypto.randomBytes(12).toString('base64url');
   return `Nx!${body}9a`;
@@ -51,7 +55,7 @@ async function listUsers() {
 }
 
 async function createUser(persona, password) {
-  return request('/auth/v1/admin/users', {
+  const payload = await request('/auth/v1/admin/users', {
     method: 'POST',
     body: JSON.stringify({
       email: persona.email,
@@ -61,13 +65,15 @@ async function createUser(persona, password) {
       app_metadata: { nexus_test_persona: true },
     }),
   });
+  return unwrapUser(payload);
 }
 
 async function updatePassword(userId, password) {
-  return request(`/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+  const payload = await request(`/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
     method: 'PUT',
     body: JSON.stringify({ password }),
   });
+  return unwrapUser(payload);
 }
 
 async function getOne(table, filters, select = '*') {
@@ -89,6 +95,7 @@ async function insert(table, row, select = '*') {
 }
 
 async function ensurePerson(authUser, persona) {
+  if (!authUser?.id) throw new Error(`Supabase Auth did not return a user ID for ${persona.email}.`);
   let person = await getOne('nexus_people', { auth_user_id: authUser.id });
   if (person) return person;
   person = await insert('nexus_people', {
