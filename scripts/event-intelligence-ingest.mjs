@@ -1,8 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { mergeEvents, normalizeEvent, sourceRecord } from '../src/event-intelligence.js';
 
-const ROOT=path.resolve(new URL('..',import.meta.url).pathname);
+const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const DATA=path.join(ROOT,'data','event-intelligence');
 const SOURCES=path.join(DATA,'sources.json');
 const EVENTS=path.join(DATA,'events.json');
