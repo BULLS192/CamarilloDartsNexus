@@ -7,8 +7,13 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "check": "node --check server.js && node --check public/access-lab.js && node --check public/organization-os.js && node --check public/tournament-director.js && node --check src/bullshooter.js && node --check src/sheets.js && node --check src/tournament-brackets.js && node tests/handicap.test.js && node tests/platform.test.js && node tests/rbac-v120.test.js",
+    "check": "node --check server.js && node --check public/access-lab.js && node --check public/organization-os.js && node --check public/tournament-director.js && node --check src/bullshooter.js && node --check src/sheets.js && node --check src/tournament-brackets.js && node --check src/event-intelligence.js && node tests/handicap.test.js && node tests/platform.test.js && node tests/rbac-v120.test.js && node tests/event-intelligence.test.js",
     "test:rbac": "node tests/rbac-v120.test.js",
+    "test:event-intelligence": "node tests/event-intelligence.test.js",
+    "intel:add-source": "node scripts/event-intelligence-ingest.mjs add-source",
+    "intel:sources": "node scripts/event-intelligence-ingest.mjs list-sources",
+    "intel:ingest": "node scripts/event-intelligence-ingest.mjs ingest-file",
+    "intel:events": "node scripts/event-intelligence-ingest.mjs list-events",
     "provision:test-users": "node scripts/provision-nexus-test-users.mjs"
   },
   "dependencies": {
