@@ -1,8 +1,8 @@
-name: NEXUS League Builder V1.2.1
+name: NEXUS League Engine V1.2.x
 
 on:
   push:
-    branches: ["feature/v121-league-builder"]
+    branches: ["feature/v121-league-builder", "feature/v122-teams-schedule"]
   pull_request:
     branches: ["main"]
 
@@ -16,7 +16,7 @@ jobs:
           node-version: 20
       - name: Validate League Engine
         run: npm run test:league
-      - name: Validate League Builder Browser Module
-        run: node --check public/league-builder.js
+      - name: Validate League Browser Modules
+        run: node --check public/league-builder.js && node --check public/league-operations.js
       - name: Run Full Repository Checks
         run: npm run check
