@@ -1,0 +1,9 @@
+[
+  {"key":"owner","displayName":"NEXUS Owner Test","email":"owner.test@nexus.invalid","organizationSlug":"space-city-darts","roles":["owner"]},
+  {"key":"admin","displayName":"NEXUS Admin Test","email":"admin.test@nexus.invalid","organizationSlug":"space-city-darts","roles":["admin"]},
+  {"key":"league-director","displayName":"NEXUS League Director Test","email":"league.director.test@nexus.invalid","organizationSlug":"space-city-darts","roles":["league_director","player"]},
+  {"key":"tournament-director","displayName":"NEXUS Tournament Director Test","email":"tournament.director.test@nexus.invalid","organizationSlug":"space-city-darts","roles":["tournament_director","player"]},
+  {"key":"captain","displayName":"NEXUS Captain Test","email":"captain.test@nexus.invalid","organizationSlug":"space-city-darts","roles":["captain","player"]},
+  {"key":"player","displayName":"NEXUS Player Test","email":"player.test@nexus.invalid","organizationSlug":"space-city-darts","roles":["player"]},
+  {"key":"member","displayName":"NEXUS Member Test","email":"member.test@nexus.invalid","organizationSlug":"space-city-darts","roles":["member"]}
+]
