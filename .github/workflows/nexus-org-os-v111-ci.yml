@@ -1,0 +1,22 @@
+name: NEXUS Organization OS V1.1
+
+on:
+  push:
+    branches: ["feature/nexus-unified-org-os-v111"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate RBAC
+        run: npm run test:rbac
+      - name: Validate Organization OS JavaScript
+        run: node --check public/organization-os.js
+      - name: Validate existing server bundle
+        run: npm run check
