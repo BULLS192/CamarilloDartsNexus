@@ -1,0 +1,22 @@
+name: NEXUS League Builder V1.2.1
+
+on:
+  push:
+    branches: ["feature/v121-league-builder"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate League Engine
+        run: npm run test:league
+      - name: Validate League Builder Browser Module
+        run: node --check public/league-builder.js
+      - name: Run Full Repository Checks
+        run: npm run check
