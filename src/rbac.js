@@ -16,6 +16,15 @@ export const NEXUS_PERMISSIONS = Object.freeze({
   MEMBERS_VIEW: 'members.view',
   MEMBERS_MANAGE: 'members.manage',
   ROLES_ASSIGN: 'roles.assign',
+
+  VENUES_VIEW: 'venues.view',
+  VENUES_MANAGE: 'venues.manage',
+  COMPETITIONS_VIEW: 'competitions.view',
+  REGISTRATIONS_VIEW_SELF: 'registrations.view_self',
+  REGISTRATIONS_MANAGE: 'registrations.manage',
+  MATCHES_VIEW: 'matches.view',
+  STANDINGS_VIEW: 'standings.view',
+
   LEAGUES_VIEW: 'leagues.view',
   LEAGUES_CREATE: 'leagues.create',
   LEAGUES_MANAGE: 'leagues.manage',
@@ -31,6 +40,22 @@ export const NEXUS_PERMISSIONS = Object.freeze({
 });
 
 const P = NEXUS_PERMISSIONS;
+
+const UNIVERSAL_READ = [
+  P.ORGANIZATION_VIEW,
+  P.VENUES_VIEW,
+  P.COMPETITIONS_VIEW,
+  P.MATCHES_VIEW,
+  P.STANDINGS_VIEW,
+];
+
+const PLAYER_READ = [
+  ...UNIVERSAL_READ,
+  P.MEMBERS_VIEW,
+  P.LEAGUES_VIEW,
+  P.TOURNAMENTS_VIEW,
+  P.TEAMS_VIEW,
+];
 
 export const ROLE_DEFINITIONS = Object.freeze({
   [NEXUS_ROLES.OWNER]: {
@@ -49,12 +74,11 @@ export const ROLE_DEFINITIONS = Object.freeze({
     label: 'League Director',
     rank: 70,
     permissions: [
-      P.ORGANIZATION_VIEW,
-      P.MEMBERS_VIEW,
-      P.LEAGUES_VIEW,
+      ...PLAYER_READ,
       P.LEAGUES_CREATE,
       P.LEAGUES_MANAGE,
-      P.TEAMS_VIEW,
+      P.REGISTRATIONS_VIEW_SELF,
+      P.REGISTRATIONS_MANAGE,
       P.SCORES_SUBMIT,
       P.SCORES_CONFIRM,
       P.STATS_VIEW_SELF,
@@ -65,12 +89,11 @@ export const ROLE_DEFINITIONS = Object.freeze({
     label: 'Tournament Director',
     rank: 70,
     permissions: [
-      P.ORGANIZATION_VIEW,
-      P.MEMBERS_VIEW,
-      P.TOURNAMENTS_VIEW,
+      ...PLAYER_READ,
       P.TOURNAMENTS_CREATE,
       P.TOURNAMENTS_MANAGE,
-      P.TEAMS_VIEW,
+      P.REGISTRATIONS_VIEW_SELF,
+      P.REGISTRATIONS_MANAGE,
       P.SCORES_SUBMIT,
       P.SCORES_CONFIRM,
       P.STATS_VIEW_SELF,
@@ -81,12 +104,9 @@ export const ROLE_DEFINITIONS = Object.freeze({
     label: 'Captain',
     rank: 50,
     permissions: [
-      P.ORGANIZATION_VIEW,
-      P.MEMBERS_VIEW,
-      P.LEAGUES_VIEW,
-      P.TOURNAMENTS_VIEW,
-      P.TEAMS_VIEW,
+      ...PLAYER_READ,
       P.TEAMS_MANAGE,
+      P.REGISTRATIONS_VIEW_SELF,
       P.SCORES_SUBMIT,
       P.STATS_VIEW_SELF,
     ],
@@ -95,11 +115,8 @@ export const ROLE_DEFINITIONS = Object.freeze({
     label: 'Player',
     rank: 30,
     permissions: [
-      P.ORGANIZATION_VIEW,
-      P.MEMBERS_VIEW,
-      P.LEAGUES_VIEW,
-      P.TOURNAMENTS_VIEW,
-      P.TEAMS_VIEW,
+      ...PLAYER_READ,
+      P.REGISTRATIONS_VIEW_SELF,
       P.SCORES_SUBMIT,
       P.STATS_VIEW_SELF,
     ],
@@ -108,7 +125,7 @@ export const ROLE_DEFINITIONS = Object.freeze({
     label: 'Member',
     rank: 10,
     permissions: [
-      P.ORGANIZATION_VIEW,
+      ...UNIVERSAL_READ,
       P.LEAGUES_VIEW,
       P.TOURNAMENTS_VIEW,
       P.TEAMS_VIEW,
