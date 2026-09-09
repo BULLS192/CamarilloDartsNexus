@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "check": "node --check server.js && node --check public/access-lab.js && node --check public/organization-os.js && node --check public/tournament-director.js && node --check src/bullshooter.js && node --check src/sheets.js && node --check src/tournament-brackets.js && node --check src/event-intelligence.js && node --check src/league-scheduler.js && node --check src/league-standings.js && node tests/handicap.test.js && node tests/platform.test.js && node tests/rbac-v120.test.js && node tests/event-intelligence.test.js && node tests/league-scheduler.test.js && node tests/league-standings.test.js",
+    "check": "node --check server.js && node --check public/access-lab.js && node --check public/organization-os.js && node --check public/league-builder.js && node --check public/tournament-director.js && node --check src/bullshooter.js && node --check src/sheets.js && node --check src/tournament-brackets.js && node --check src/event-intelligence.js && node --check src/league-scheduler.js && node --check src/league-standings.js && node tests/handicap.test.js && node tests/platform.test.js && node tests/rbac-v120.test.js && node tests/event-intelligence.test.js && node tests/league-scheduler.test.js && node tests/league-standings.test.js",
     "test:rbac": "node tests/rbac-v120.test.js",
     "test:event-intelligence": "node tests/event-intelligence.test.js",
     "test:league": "node tests/league-scheduler.test.js && node tests/league-standings.test.js",
