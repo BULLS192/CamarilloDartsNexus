@@ -193,14 +193,20 @@ try{
         visibleText:bodyText
       };
       await writeJson(path.join(INBOX,source.id,`${stamp}.json`),snapshot);
-      state.sources[source.id]={contentHash,capturedAt:checkedAt,finalUrl,loginWall,contentShell,articleCount:articles.length,messageBlockCount:messageBlocks.length,eventCandidateCount:eventCandidates.length};
-      source.lastCheckedAt=checkedAt;
+      state.sources[source.id]={
+        contentHash,
+        capturedAt:checkedAt,
+        finalUrl,
+        loginWall,
+        contentShell,
+        articleCount:articles.length,
+        messageBlockCount:messageBlocks.length,
+        eventCandidateCount:eventCandidates.length,
+        status:loginWall?'login_required':contentShell?'content_unavailable':'captured'
+      };
       if(loginWall||contentShell){
-        source.lastError=loginWall?'Facebook login/member wall detected; establish or refresh the local browser session.':'Facebook page loaded but useful post content was not exposed; review the browser session or group membership.';
         skipped++;
       }else{
-        source.lastSuccessAt=checkedAt;
-        source.lastError='';
         captured++;
         if(isChanged) changed++;
       }
@@ -220,8 +226,7 @@ try{
         finalUrl
       });
     }catch(error){
-      source.lastCheckedAt=checkedAt;
-      source.lastError=error.message;
+      state.sources[source.id]={...(state.sources[source.id]||{}),capturedAt:checkedAt,status:'error',lastError:error.message};
       skipped++;
       results.push({sourceId:source.id,name:source.name,error:error.message});
     }finally{
@@ -229,9 +234,7 @@ try{
     }
   }
 }finally{
-  db.updatedAt=new Date().toISOString();
   state.updatedAt=new Date().toISOString();
-  await writeJson(SOURCES,db);
   await writeJson(STATE,state);
   await context.close().catch(()=>{});
   await browser?.close().catch(()=>{});
