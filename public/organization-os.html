@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NEXUS Organization OS</title>
+  <link rel="stylesheet" href="/organization-os.css" />
+</head>
+<body>
+  <div id="authView" class="auth-shell">
+    <section class="auth-brand">
+      <div class="nx-mark">NX</div>
+      <div class="eyebrow">Camarillo Darts</div>
+      <h1>One identity.<br/>Every darts organization.</h1>
+      <p>NEXUS connects players, leagues, tournaments and organizations through one account and one player graph.</p>
+    </section>
+    <section class="auth-panel">
+      <form id="loginForm" class="auth-card">
+        <div class="eyebrow">NEXUS ORGANIZATION OS · V1.1</div>
+        <h2>Sign in</h2>
+        <p>Use a NEXUS test account or an existing connected organization account.</p>
+        <label>EMAIL<input id="email" type="email" autocomplete="username" required></label>
+        <label>PASSWORD<input id="password" type="password" autocomplete="current-password" required></label>
+        <button class="btn primary" type="submit">Enter NEXUS</button>
+        <div id="authStatus" class="status"></div>
+        <a class="subtle-link" href="/access-lab.html">Open Access Lab instead</a>
+      </form>
+    </section>
+  </div>
+
+  <div id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="side-brand"><div class="nx-mark small">NX</div><div><b>NEXUS</b><small>ORGANIZATION OS</small></div></div>
+      <div class="org-control">
+        <label>ORGANIZATION</label>
+        <select id="orgPicker"></select>
+        <div id="orgMode" class="bridge-badge"></div>
+      </div>
+      <nav id="nav"></nav>
+      <div class="side-footer">
+        <div id="identityMini"></div>
+        <button id="logoutBtn" class="btn ghost">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <div id="orgType" class="eyebrow">ORGANIZATION</div>
+          <h1 id="orgName">NEXUS</h1>
+        </div>
+        <div class="top-actions">
+          <span id="roleSummary" class="role-summary"></span>
+          <a id="legacyLaunch" class="btn ghost hidden" target="_blank" rel="noopener">Open legacy app</a>
+        </div>
+      </header>
+      <div id="toast" class="toast hidden"></div>
+      <section id="content" class="content"></section>
+    </main>
+  </div>
+
+  <script type="module" src="/organization-os.js"></script>
+</body>
+</html>
