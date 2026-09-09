@@ -1,0 +1,24 @@
+name: NEXUS V1 RBAC
+
+on:
+  push:
+    branches:
+      - feature/v120-multi-org-rbac
+  pull_request:
+    paths:
+      - 'src/rbac.js'
+      - 'tests/rbac-v120.test.js'
+      - 'public/access-lab.*'
+      - 'supabase/drafts/nexus_v120_multi_org_rbac.sql'
+      - '.github/workflows/nexus-rbac-v120-ci.yml'
+
+jobs:
+  rbac:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run NEXUS RBAC tests
+        run: node tests/rbac-v120.test.js
