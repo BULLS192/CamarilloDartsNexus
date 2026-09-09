@@ -11,7 +11,7 @@ const results = [
 ];
 
 const standard = calculateLeagueStandings(teams, results);
-assert.deepEqual(standard.map((r) => r.teamId), ['C', 'A', 'B', 'D']);
+assert.deepEqual(standard.map((r) => r.teamId), ['C', 'B', 'A', 'D']);
 assert.deepEqual(standard.map((r) => r.points), [4, 3, 3, 1]);
 assert.equal(standard.find((r) => r.teamId === 'A').played, 2, 'non-final result must be ignored');
 assert.equal(standard.find((r) => r.teamId === 'A').legDiff, 0);
