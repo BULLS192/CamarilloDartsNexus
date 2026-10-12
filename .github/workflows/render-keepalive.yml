@@ -1,12 +1,9 @@
-name: Keep Camarillo Darts Render Awake
+name: Manual Camarillo Darts Render Health Check
 
+# Supabase pg_cron job 1 already calls the Render /health endpoint every five
+# minutes. Keep this workflow as an on-demand fallback rather than also
+# scheduling GitHub Actions runs against the same endpoint.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/render-keepalive.yml'
-  schedule:
-    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -14,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Wake and keep Render service active
+      - name: Check Render service health
         run: |
           curl --fail --show-error --silent \
             --retry 3 --retry-delay 5 --max-time 60 \
